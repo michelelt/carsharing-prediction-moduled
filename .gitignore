@@ -1,0 +1,5 @@
+credential/credeintial.txt
+*.DS_Store
+*.csv
+*.pyc 
+__pycache__/s
