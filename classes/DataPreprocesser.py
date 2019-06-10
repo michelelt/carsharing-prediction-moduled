@@ -15,41 +15,51 @@ from geopy.distance import great_circle
 from shapely.geometry import MultiPoint
 
 
-from DataDownloader import DataDownloader
-
-
 import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import haversine, crs_
+from .DataDownloader import DataDownloader
 
 class DataPreprocesser:
     
     
-    def __init__(self, city, data_path):
+    def __init__(self, city, data_path, *args, **kwargs):
         self.city = city
         self.provider  = 'car2go'
         self.data_path = data_path
+        
+        self.i_date = kwargs.get('i_date', None)
+        self.f_date = kwargs.get('f_date', None)
         
     def upload_bookigns(self):
         if self.city not in os.listdir(self.data_path):
             os.mkdir(self.data_path+self.city)
             dd = DataDownloader(self.city, self.provider)
-            self.booking = dd.query_data(dd.booking_collection)
+            
+            self.booking = dd.query_data(dd.booking_collection, 
+                                         i_date = self.i_date,
+                                         f_date = self.f_date)
             self.booking.to_csv(self.data_path+self.city+'/%s_raw.csv'%self.city, 
                                 index=False)
         else:
             self.booking  = pd.read_csv(self.data_path+self.city+'/%s_raw.csv'%self.city)
+            print(self.booking.head())
+            
+            
             
     def filter_time(self, min_time, max_time):
         self.booking= self.booking[(self.booking.duration >=min_time)
                                     &self.booking.duration <=  max_time]
         return
     
+    
+    
     def filter_distance(self, distance):
         self.booking = self.booking[(self.booking.distance >= distance)]
         return
         
+    
         
     def detect_spatial_outliers(self):
         
@@ -109,6 +119,11 @@ class DataPreprocesser:
         self.filter_time(60, 3600)
         self.filter_distance(700)
         self.filter_spatial_outlier()
+        self.set_timebin()
+        self.booking.to_csv(self.data_path+\
+                            self.city+\
+                            '/%s_filtered_binned.csv'%self.city, 
+                            index=False)
         return
     
     def set_timebin(self):
@@ -131,18 +146,20 @@ class DataPreprocesser:
             time_bin_val+=1
 
         return
+    
+    
         
     
 
-#
-dp = DataPreprocesser('Torino', './../data/')
-dp.upload_bookigns()
-bookings_before_filtering = dp.booking
-dp.standard_filtering()
-bookings_after_filtering = dp.booking
-dp.set_timebin()
-bookings_after_timebinning = dp.booking
-bookings_after_timebinning.to_csv('../data/Torino/Torino_filtered.csv')
-#
+
+#dp = DataPreprocesser('Toronto', './../data/')
+#dp.upload_bookigns()
+#bookings_before_filtering = dp.booking
+#dp.standard_filtering()
+#bookings_after_filtering = dp.booking
+#dp.set_timebin()
+#bookings_after_timebinning = dp.booking
+#bookings_after_timebinning.to_csv('../data/Torino/Torino_filtered.csv')
+##
 
 

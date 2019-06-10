@@ -18,13 +18,14 @@ import geopandas as gpd
 
 class TilesMapCreator:
     
-    def __init__(self,df):
+    def __init__(self,df, data_path):
         self.df = df
         self.min_lat = min(self.df.start_lat.min(), self.df.end_lat.min())
         self.min_lon = min(self.df.start_lon.min(), self.df.end_lon.min())
         self.max_lat = max(self.df.start_lat.max(), self.df.end_lat.max())
         self.max_lon = max(self.df.start_lon.max(), self.df.end_lon.max())
         self.crs = crs_
+        self.data_path = data_path
         
         
     def find_steps(self, side_length, epsilon):
@@ -77,10 +78,13 @@ class TilesMapCreator:
         C = (lon_c + step_lon, lat_c + step_lat)
         D = (lon_c, lat_c + step_lat)
             
-        return Polygon([A,B,C,D])    
+        return Polygon([A,B,C,D]) 
+    
+    def get_city_from_df(self):
+        return  self.df.iloc[0]['city']
     
     
-    def create_empity_tiles_map(self, side_legth, epsilon):
+    def create_empity_tiles_map(self, side_legth, epsilon, save=False):
     
         # =========================================================================
         # create new tiles map
@@ -97,6 +101,18 @@ class TilesMapCreator:
             lat += self.step_lat
         tiles = gpd.GeoDataFrame(geometry=geometry, crs=self.crs)
         self.tiles = tiles
+        
+        if save:
+            
+            self.city = self.get_city_from_df()
+            if not os.path.isdir(self.data_path+self.city):
+                print('Impossivle to save the empty tile map')
+                return tiles
+            
+            #'data_path/Toronto/Toronto_tiles_shp'
+#            path='%s/%s/%s/'%(self.data_path, self.city, self.city+'_tiles_shp')
+#            os.mkdir(path)
+            self.tiles.to_file(self.data_path+self.city+'/%s_tiles'%self.city)
         return tiles
     
         

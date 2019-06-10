@@ -38,16 +38,16 @@ class DataDownloader:
         lines = credential.readlines()
         credential.close()
 
-        self.connection_data. = {}
+        self.connection_data = {}
         for line in lines:
             split = line.split(':')
-            self.connection_data[split[0]] = split [1]
+            self.connection_data[split[0]] = split[1][:-1]
 
             
     def setup_mongodb(self, collection):
         try:
             client = pymongo.MongoClient(self.connection_data['server'],
-                                         self.connection_data['port'],
+                                         int(self.connection_data['port']),
                                          ssl=bool(self.connection_data['ssl']),
                                          ssl_cert_reqs=ssl.CERT_NONE) # server.local_bind_port is assigned local port                #client = pymongo.MongoClient()
             client.server_info()
@@ -121,9 +121,11 @@ class DataDownloader:
         
         collection = self.setup_mongodb(collection)
         
+        print('Queried city: %s'%self.city)
         print('Query time interval:')
         print('Init date: ', i_date)
         print('Final date:', f_date)
+        
         
         output = collection.find({"city": self.city, 
                                      "init_date": {"$gt": i_date, 
@@ -143,7 +145,7 @@ class DataDownloader:
         
         
 #dd = DataDownloader('Toronto', 'car2go')
-#bookings = dd.query_data(dd.booking_collection)
-
-
+#i_date = datetime.datetime(2017, 9, 6, 0, 0, 0)
+#f_date = datetime.datetime(2017, 9, 7, 0, 0, 0)
+#bookings = dd.query_data(dd.booking_collection, i_date=i_date, f_date=f_date)
 

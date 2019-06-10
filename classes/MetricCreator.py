@@ -9,14 +9,16 @@ Created on Thu Jun  6 12:25:39 2019
 import pandas as pd
 import geopandas as gpd
 
-from DataPreprocesser import DataPreprocesser
-from TilesMapCreator import TilesMapCreator
+
 
 
 import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import haversine, crs_
+
+from .DataPreprocesser import DataPreprocesser
+from .TilesMapCreator import TilesMapCreator
 
 
 from shapely.geometry import MultiPoint, Polygon, Point
@@ -44,7 +46,7 @@ class MetricCreator:
                                                             axis=1)
             df = gpd.GeoDataFrame(self.df, crs=self.crs)
         
-            merged = gpd.sjoin(df, tiles, how='left', op='within')
+            merged = gpd.sjoin(df, self.tiles, how='left', op='within')
             merged = merged.rename(columns={
                     "index_right": "index_"+string, 
                     })
@@ -182,20 +184,21 @@ class MetricCreator:
         self.tiles  = self.tiles.join(df, how='left')
         
         neigh = self.compute_Gi()
+        self.tiles = neigh
         
         
         return neigh
         
         
     
-bookings = pd.read_csv('../data/Torino/Torino_filtered.csv')
-tmc = TilesMapCreator(bookings)
-tiles =  tmc.create_empity_tiles_map(500, 0.001)
-
-mc = MetricCreator(bookings.iloc[0:100], tiles)
-mc.merge_tiles_with_bookings()
-neigh =  mc.compute_metrics_per_tile()
-tiles = mc.tiles
+#bookings = pd.read_csv('../data/Torino/Torino_filtered.csv')
+#tmc = TilesMapCreator(bookings)
+#tiles =  tmc.create_empity_tiles_map(500, 0.001)
+#
+#mc = MetricCreator(bookings.iloc[0:100], tiles)
+#mc.merge_tiles_with_bookings()
+#neigh =  mc.compute_metrics_per_tile()
+#tiles = mc.tiles
 
 
 
