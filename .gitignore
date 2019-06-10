@@ -3,3 +3,4 @@ credential/credeintial.txt
 *.csv
 *.pyc 
 __pycache__/s
+data/*
