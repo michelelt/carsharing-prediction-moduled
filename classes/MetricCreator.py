@@ -19,6 +19,7 @@ from GlobalsFunctions import haversine, crs_
 
 from .DataPreprocesser import DataPreprocesser
 from .TilesMapCreator import TilesMapCreator
+from .LocalMemoryChecker import LocalMemoryChecker
 
 
 from shapely.geometry import MultiPoint, Polygon, Point
@@ -32,13 +33,34 @@ from math import *
 
 class MetricCreator:
     
-    def __init__(self, bookings, tiles):
-        self.df = bookings
-        self.tiles = tiles.reset_index().rename(columns={'index':'FID'})
-        self.crs = crs_
+    def __init__(self, bookings, tiles, data_path):
+        self.df = bookings            
+        self.tiles = tiles
+        if 'FID' not in self.tiles.columns:
+            self.tiles = self.tiles\
+                        .reset_index()\
+                        .rename(columns={'index':'FID'})
+
         
+        self.crs = crs_
+        self.data_path=data_path
+        self.city = bookings.iloc[0]['city']
+        self.tiles_with_metric=None
+        
+        lmc = LocalMemoryChecker(self.city, self.data_path)
+        if lmc.isDatasetDownloaded('tiles_metric'):
+            print('carico da file')
+            self.tiles_with_metric = gpd.read_file(self.data_path+\
+                                       self.city+\
+                                       '/%s_tiles_metric/%s_tiles_metric.shp'%(self.city, self.city),
+                                       crs=self.crs)
         
     def merge_tiles_with_bookings(self):
+        
+        if ('index_start' in list(self.df.columns)) and ('index_end' in list(self.df.columns))\
+        or\
+        ('FID_right' in list(self.df.columns)) and ('FID_left' in list(self.df.columns)):
+            return
     
         for string in ['start','end'] :
             self.df['geometry'] = self.df.apply(lambda x: Point(x[string+"_lon"], 
@@ -64,8 +86,8 @@ class MetricCreator:
                         )
         
             self.tiles = self.tiles[ (self.tiles.FID.isin(set_areas))
-                                                  &(self.tiles.FID > -1)  
-                                                  ]
+                                    &(self.tiles.FID > -1)  
+                                    ]
             
         except KeyError:
             print('Merge bookings with tiles before')
@@ -92,7 +114,7 @@ class MetricCreator:
 
         #    log = open('log.txt', 'w')
         tiles = self.tiles
-        print (self.tiles.columns)
+#        print (self.tiles.columns)
         neigh = tiles.set_index('FID')
         cells_gdf = tiles.set_index('FID')
         
@@ -149,10 +171,15 @@ class MetricCreator:
         return neigh
             
         
-    def compute_metrics_per_tile(self):
+    def compute_metrics_per_tile(self, save):
+        if not self.tiles_with_metric is None:
+            return self.tiles_with_metric
+
+            
         
         
         self.create_oparative_area()
+    
         try :
             df = pd.DataFrame(index=self.tiles.index)
             df['count_start'] = self.df.groupby('index_start').count()['_id']
@@ -170,8 +197,9 @@ class MetricCreator:
                 .set_index('index_end')
             
             
-            time_bins = self.df.time_bin.unique()
+            time_bins = self.df.time_bin.unique()            
             for tb in time_bins:
+                
                 df['c_start_%d'%tb] = init[init.time_bin == tb]['_id']
                 df['c_final_%d'%tb] = final[final.time_bin == tb]['_id']
         
@@ -179,27 +207,25 @@ class MetricCreator:
             print('Merge bookings with tiles before')
             return
         
-        
-        df = df.fillna(0)
+#        self.df = self.df.fillna(0)
         self.tiles  = self.tiles.join(df, how='left')
+        self.tiles = self.tiles.fillna(0)
         
-        neigh = self.compute_Gi()
-        self.tiles = neigh
-        
-        
-        return neigh
+        self.compute_Gi()
+        self.tiles_with_metric = self.tiles
         
         
-    
-#bookings = pd.read_csv('../data/Torino/Torino_filtered.csv')
-#tmc = TilesMapCreator(bookings)
-#tiles =  tmc.create_empity_tiles_map(500, 0.001)
-#
-#mc = MetricCreator(bookings.iloc[0:100], tiles)
-#mc.merge_tiles_with_bookings()
-#neigh =  mc.compute_metrics_per_tile()
-#tiles = mc.tiles
-
+        if save:
+            if not os.path.isdir(self.data_path+self.city):
+                print('Impossivle to save the metrics tabele')
+                return self.tiles
+            
+            #'data_path/Toronto/Toronto_tiles_shp'
+            self.tiles.to_file(self.data_path+self.city+'/%s_tiles_metric'%self.city)            
+        
+        
+        return self.tiles_with_metric
+        
 
 
 

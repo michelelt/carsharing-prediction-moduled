@@ -10,11 +10,13 @@ import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import haversine, crs_
+from .LocalMemoryChecker import LocalMemoryChecker
 
 
 from shapely.geometry import MultiPoint, Polygon, Point
 import pandas as pd
 import geopandas as gpd
+
 
 class TilesMapCreator:
     
@@ -26,6 +28,17 @@ class TilesMapCreator:
         self.max_lon = max(self.df.start_lon.max(), self.df.end_lon.max())
         self.crs = crs_
         self.data_path = data_path
+        self.city = self.get_city_from_df()
+        self.tiles = None
+        
+        lmc = LocalMemoryChecker(self.get_city_from_df(), self.data_path)
+        if lmc.isDatasetDownloaded('tiles'):
+            self.tiles = gpd.read_file(self.data_path+\
+                                       self.city+\
+                                       '/%s_tiles/%s_tiles.shp'%(self.city, self.city),
+                                       crs=self.crs)
+            
+
         
         
     def find_steps(self, side_length, epsilon):
@@ -85,7 +98,9 @@ class TilesMapCreator:
     
     
     def create_empity_tiles_map(self, side_legth, epsilon, save=False):
-    
+        
+        if not self.tiles is None:
+            return self.tiles
         # =========================================================================
         # create new tiles map
         # =========================================================================
@@ -106,12 +121,10 @@ class TilesMapCreator:
             
             self.city = self.get_city_from_df()
             if not os.path.isdir(self.data_path+self.city):
-                print('Impossivle to save the empty tile map')
+                print('Impossible to save the empty tile map')
                 return tiles
             
             #'data_path/Toronto/Toronto_tiles_shp'
-#            path='%s/%s/%s/'%(self.data_path, self.city, self.city+'_tiles_shp')
-#            os.mkdir(path)
             self.tiles.to_file(self.data_path+self.city+'/%s_tiles'%self.city)
         return tiles
     

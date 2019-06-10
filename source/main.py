@@ -23,30 +23,49 @@ sys.path.append(os.path.dirname(CURRENT_DIR))
 
 
 from classes.DataPreprocesser import DataPreprocesser
-from classes.DataDownloader import DataDownloader
-from classes.TilesMapCreator import TilesMapCreator
-from classes.MetricCreator import MetricCreator
+from classes.DataDownloader   import DataDownloader
+from classes.TilesMapCreator  import TilesMapCreator
+from classes.MetricCreator    import MetricCreator
+from classes.LocalMemoryChecker import LocalMemoryChecker
 import datetime
 
 
-#'''retrive data'''
-city = 'Toronto'
-data_path = './../data/'
-i_date = datetime.datetime(2017, 9, 6, 0, 0, 0)
-f_date = datetime.datetime(2017, 9, 7, 0, 0, 0)
 
-dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
-dp.upload_bookigns()
-dp.standard_filtering()
+if __name__ == '__main__':
+    city = 'Vancover'
+    data_path = './../data/'
+    
+# =============================================================================
+#     try to implement to save date in the file name
+# =============================================================================
+    i_date = datetime.datetime(2016, 9, 6, 0, 0, 0)
+    f_date = datetime.datetime(2019, 9, 15, 0, 0, 0)
+# =============================================================================
+# 
+# =============================================================================
+    dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
+    dp.upload_bookigns()
+    dp.standard_filtering()
+    
+    tmc = TilesMapCreator(dp.booking, data_path)
+    
+    tmc.create_empity_tiles_map(500, 0.001, save=True)
+    tiles = tmc.tiles
+#    
+    mc = MetricCreator(dp.booking, tmc.tiles, data_path)
+    mc.merge_tiles_with_bookings()
+    tiles_with_metrics2 =  mc.compute_metrics_per_tile(save=True)
+    
+    
+    
+    
 
-tmc = TilesMapCreator(dp.booking, data_path)
-tmc.create_empity_tiles_map(500, 0.001, True)
+        
 
-mc = MetricCreator(dp.booking, tmc.tiles)
-mc.merge_tiles_with_bookings()
-bookings = mc.df
-#neigh =  mc.compute_metrics_per_tile()
-#neigh=mc.tiles
+    
+#    
+#    
+    
 
 
 

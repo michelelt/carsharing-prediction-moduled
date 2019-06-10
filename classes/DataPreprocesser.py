@@ -44,7 +44,6 @@ class DataPreprocesser:
                                 index=False)
         else:
             self.booking  = pd.read_csv(self.data_path+self.city+'/%s_raw.csv'%self.city)
-            print(self.booking.head())
             
             
             
