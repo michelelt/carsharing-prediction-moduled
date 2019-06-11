@@ -31,10 +31,11 @@ class DataPreprocesser:
         
         self.i_date = kwargs.get('i_date', None)
         self.f_date = kwargs.get('f_date', None)
+        self.is_downloaded = False
         
     def upload_bookigns(self):
-        if self.city not in os.listdir(self.data_path):
-            os.mkdir(self.data_path+self.city)
+        if not os.path.isfile(self.data_path+self.city+'/%s_raw.csv'%self.city):
+            print('Download data')
             dd = DataDownloader(self.city, self.provider)
             
             self.booking = dd.query_data(dd.booking_collection, 
@@ -42,14 +43,16 @@ class DataPreprocesser:
                                          f_date = self.f_date)
             self.booking.to_csv(self.data_path+self.city+'/%s_raw.csv'%self.city, 
                                 index=False)
+            self.is_downloaded = True
         else:
+            print('Upload data from local')
             self.booking  = pd.read_csv(self.data_path+self.city+'/%s_raw.csv'%self.city)
-            
+            self.is_downloaded = True
             
             
     def filter_time(self, min_time, max_time):
-        self.booking= self.booking[(self.booking.duration >=min_time)
-                                    &self.booking.duration <=  max_time]
+        self.booking= self.booking[( self.booking.duration >= min_time)
+                                    &self.booking.duration <= max_time]
         return
     
     
@@ -63,9 +66,14 @@ class DataPreprocesser:
     def detect_spatial_outliers(self):
         
         if len(self.booking[self.booking.columns[0]])> 1e5:
-            df_test = self.booking.sample(n=int(self.booking.shape[0]*0.1), random_state=1)
+            df_test = self.booking.sample(n=int(self.booking.shape[0]*0.05), random_state=1)
         else:
             df_test = self.booking
+        
+        print('DBSCAN on %d elements' %len(df_test))
+        
+        fig,ax = plt.subplots()
+        ax.scatter(df_test.start_lon, df_test.start_lat, s=0.5, color='red')
         
         coords = df_test[['start_lat', 'start_lon']].values
         kms_per_radian = 6371.0088
@@ -90,12 +98,22 @@ class DataPreprocesser:
         '''
         retrieve extremes of the squares
         '''
-        clean_df = df_test[df_test.cluster >= 0]
-        self.min_lat = min(clean_df.start_lat.min(), clean_df.end_lat.min())
-        self.min_lon = min(clean_df.start_lon.min(), clean_df.end_lon.min())
+        clean_df = df_test[df_test.cluster >=  0]
+        outli_df = df_test[df_test.cluster == -1]
         
-        self.max_lat = max(clean_df.start_lat.max(), clean_df.end_lat.max())
-        self.max_lon = max(clean_df.start_lon.max(), clean_df.end_lon.max())
+        fig,ax = plt.subplots()
+        ax.set_title('from dbscan')
+        ax.scatter(clean_df.start_lon, clean_df.start_lat, s=0.5, color='green')
+        ax.scatter(outli_df.start_lon, outli_df.start_lat, s=0.5, color='red')
+        
+        
+        
+        
+        self.min_lat = max(clean_df.start_lat.min(), clean_df.end_lat.min())
+        self.min_lon = max(clean_df.start_lon.min(), clean_df.end_lon.min())
+        
+        self.max_lat = min(clean_df.start_lat.max(), clean_df.end_lat.max())
+        self.max_lon = min(clean_df.start_lon.max(), clean_df.end_lon.max())
 
         return df_test
 
@@ -115,16 +133,43 @@ class DataPreprocesser:
                 ]
         
     def standard_filtering(self):
-        self.filter_time(60, 3600)
-        self.filter_distance(700)
-        self.filter_spatial_outlier()
-        self.set_timebin()
-        self.booking.to_csv(self.data_path+\
-                            self.city+\
-                            '/%s_filtered_binned.csv'%self.city, 
-                            index=False)
+        if not os.path.isfile(self.data_path+self.city+'/%s_filtered_binned.csv'%self.city):
+            print('Init L:%d '%len(self.booking) )
+            
+            print('Filter time')
+            self.filter_time(60, 3600)
+            print('L:%d\n'%len(self.booking ))
+
+            
+            
+            print('Filter distances')
+            print('L:%d\n'%len(self.booking ))
+            self.filter_distance(700)
+            
+            print('Filter spatial outliers')
+            print('L:%d\n'%len(self.booking ))
+            self.filter_spatial_outlier()
+            
+            print('Set time bins')
+            print('L:%d\n'%len(self.booking ))
+            self.set_timebin()
+            
+#            fig,ax = plt.subplots()
+#            ax.scatter(self.booking.start_lon, self.booking.start_lat, s=0.5)
+            
+            print('save')
+#            self.booking.to_csv(self.data_path+\
+#                                self.city+\
+#                                '/%s_filtered_binned.csv'%self.city, 
+#                                index=False)
+            
+            
+            
+        else:
+            print('Dataset already preprocessed')
+            self.booking = pd.read_csv(self.data_path+self.city+'/%s_filtered_binned.csv' %self.city)
         return
-    
+
     def set_timebin(self):
         
         self.booking['time_bin'] = -1

@@ -149,7 +149,7 @@ def replace_truncated_labels(neigh):
                 
     neigh = neigh.rename(columns=dict_names)
     return neigh
-
+'''
 # =============================================================================
 # set of columns of censuns file to save for analysis
 # =============================================================================
@@ -177,7 +177,7 @@ def column_labels_to_keep():
     for line in lines: lines2.append(line.rstrip().lstrip())
     
     return lines2
-
+'''
 
 # =============================================================================
 # upload from text file the columns on which I want to compute the most

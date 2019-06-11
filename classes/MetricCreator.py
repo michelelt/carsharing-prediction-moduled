@@ -110,11 +110,9 @@ class MetricCreator:
         return
     
     def compute_Gi(self):
+        
         self.compute_distance_matrix()
-
-        #    log = open('log.txt', 'w')
         tiles = self.tiles
-#        print (self.tiles.columns)
         neigh = tiles.set_index('FID')
         cells_gdf = tiles.set_index('FID')
         
@@ -140,31 +138,16 @@ class MetricCreator:
                 N = sqrt(n-1)* n * X - (sum(closer[label] * W ))
                 D = sqrt(n * x_2_sum - X*X)*sqrt(n*W - W*W)
                 
-    #            log.write('--------------\n')
-    #            log.write('closer: ' +str(closer) +'\n')
-    #            log.write('n:%d\n' % n)
-    #            log.write('x_2_sum:'  + str(x_2_sum) +'\n')
-    #            log.write('X:' +str(X) + '\n')
-    #            log.write('W:' +str(W) + '\n')
-    #            log.write('--------------\n')
-                
                 if D == 0: Gi[cell] = 0
                 else: Gi[cell] = N/D
                 
             
-            # =====================================================================
+            # =================================================================
             # computing Z-sscore for each Gi index
-            # =====================================================================
+            # =================================================================
             neigh['Gi_%d'%i] = pd.DataFrame.from_dict(Gi, orient='index')
-    #        neigh['z_Gi_%d'%i] = (neigh['Gi_%d'%i] - neigh['Gi_%d'%i].mean()) / (neigh['Gi_%d'%i].std() )
            
         neigh = gpd.GeoDataFrame(neigh, geometry=cells_gdf.geometry, crs=crs_).reset_index()  
-#        print()
-#        print(self.tiles.index)
-#        print(neigh.index)
-#        print()
-#        self.tiles = self.tiles.join(neigh.set_index('FID'),n how='left')
-#    #    log.close()     
         
         self.tiles = neigh
     
