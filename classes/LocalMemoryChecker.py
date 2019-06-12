@@ -5,7 +5,7 @@ Created on Mon Jun 10 10:21:27 2019
 
 @author: mc
 """
-
+import pandas as pd
 
 import os
 class LocalMemoryChecker():
@@ -32,12 +32,12 @@ class LocalMemoryChecker():
             
             for ext in ['cpg', 'dbf', 'prj', 'shp', 'shx']:
                 to_test = path
-                to_test = to_test + '/%s_tiles.%s'%(self.city, ext)
+                to_test = to_test + '/%s_tiles_metric.%s'%(self.city, ext)
 #                print(to_test)
                 if os.path.isfile(to_test) ==  False:
                     return False
             return True
-        
+
         return os.path.isfile('%s%s/%s_%s'%(self.data_path, 
                                             self.city, 
                                             self.city, 
@@ -45,3 +45,17 @@ class LocalMemoryChecker():
     
 
     
+#city = 'Vancouver'
+#data_path = './../data/'
+#lmc = LocalMemoryChecker(city, data_path)
+#        
+#zz = data_path+\
+#                               city+\
+#                               '/%s_filtered_binned_merged.csv/'%city
+#
+#if lmc.isDatasetDownloaded('filtered_binned_merged.csv'):
+#    print ('8888')
+#    df = pd.read_csv(data_path+\
+#                               city+\
+#                               '/%s_filtered_binned_merged.csv'%city,
+#                               )

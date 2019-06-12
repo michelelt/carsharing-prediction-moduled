@@ -72,8 +72,9 @@ class DataPreprocesser:
         
         print('DBSCAN on %d elements' %len(df_test))
         
-        fig,ax = plt.subplots()
-        ax.scatter(df_test.start_lon, df_test.start_lat, s=0.5, color='red')
+#        fig,ax = plt.subplots()
+#        ax.set_title('before dbscan')
+#        ax.scatter(df_test.start_lon, df_test.start_lat, s=0.5, color='blue')
         
         coords = df_test[['start_lat', 'start_lon']].values
         kms_per_radian = 6371.0088
@@ -101,14 +102,13 @@ class DataPreprocesser:
         clean_df = df_test[df_test.cluster >=  0]
         outli_df = df_test[df_test.cluster == -1]
         
-        fig,ax = plt.subplots()
-        ax.set_title('from dbscan')
-        ax.scatter(clean_df.start_lon, clean_df.start_lat, s=0.5, color='green')
-        ax.scatter(outli_df.start_lon, outli_df.start_lat, s=0.5, color='red')
+#        fig,ax = plt.subplots()
+#        ax.set_title('after dbscan')
+#        ax.scatter(clean_df.start_lon, clean_df.start_lat, s=0.5, color='green')
+#        ax.scatter(outli_df.start_lon, outli_df.start_lat, s=0.5, color='red')
         
         
-        
-        
+
         self.min_lat = max(clean_df.start_lat.min(), clean_df.end_lat.min())
         self.min_lon = max(clean_df.start_lon.min(), clean_df.end_lon.min())
         
@@ -153,15 +153,12 @@ class DataPreprocesser:
             print('Set time bins')
             print('L:%d\n'%len(self.booking ))
             self.set_timebin()
-            
-#            fig,ax = plt.subplots()
-#            ax.scatter(self.booking.start_lon, self.booking.start_lat, s=0.5)
-            
+                        
             print('save')
-#            self.booking.to_csv(self.data_path+\
-#                                self.city+\
-#                                '/%s_filtered_binned.csv'%self.city, 
-#                                index=False)
+            self.booking.to_csv(self.data_path+\
+                                self.city+\
+                                '/%s_filtered_binned.csv'%self.city, 
+                                index=False)
             
             
             

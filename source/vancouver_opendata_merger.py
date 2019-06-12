@@ -178,12 +178,9 @@ tiles = gpd\
 tiles =  merge_tiles_and_building_info(tiles, building_info)
 
 squares_overlapped = merge_squares_and_neighs([0.51], neigh, tiles) 
-zzz = squares_overlapped.set_index('MAPID')\
+squares_overlapped = squares_overlapped.set_index('MAPID')\
                     .join(neigh_with_features.set_index('MAPID'),
-#                          how='left',
-#                          on='MAPID',
                           lsuffix = '_nwf').reset_index()
 #
 
-#tiles.plot()
 

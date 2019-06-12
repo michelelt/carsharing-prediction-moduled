@@ -48,19 +48,32 @@ class MetricCreator:
         self.tiles_with_metric=None
         
         lmc = LocalMemoryChecker(self.city, self.data_path)
+        
         if lmc.isDatasetDownloaded('tiles_metric'):
-            print('carico da file')
+            print('Metric uploaded from local')
             self.tiles_with_metric = gpd.read_file(self.data_path+\
                                        self.city+\
                                        '/%s_tiles_metric/%s_tiles_metric.shp'%(self.city, self.city),
                                        crs=self.crs)
+
+        if lmc.isDatasetDownloaded('filtered_binned_merged.csv'):
+            print('Merged dataset uploaded from local')
+            self.df = pd.read_csv(self.data_path+\
+                                       self.city+\
+                                       '/%s_filtered_binned_merged.csv'%(self.city)
+                                       )
         
     def merge_tiles_with_bookings(self):
+
+
         
         if ('index_start' in list(self.df.columns)) and ('index_end' in list(self.df.columns))\
         or\
         ('FID_right' in list(self.df.columns)) and ('FID_left' in list(self.df.columns)):
+            print('Dataset alrady merged with map. Uploaded from local')
             return
+
+        print('Merging bookings with tiles')
     
         for string in ['start','end'] :
             self.df['geometry'] = self.df.apply(lambda x: Point(x[string+"_lon"], 
@@ -75,6 +88,8 @@ class MetricCreator:
 
             merged = merged.fillna(-1)
             self.df = merged
+
+            self.df.to_csv(self.data_path + '%s/%s_filtered_binned_merged.csv'%(self.city, self.city))
         return 
     
     
@@ -156,11 +171,10 @@ class MetricCreator:
         
     def compute_metrics_per_tile(self, save):
         if not self.tiles_with_metric is None:
+            print('Upload metrics from local')
             return self.tiles_with_metric
 
             
-        
-        
         self.create_oparative_area()
     
         try :
