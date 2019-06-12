@@ -130,7 +130,7 @@ def merge_squares_and_neighs(toll_list, neigh, tiles):
         print ("toll", toll)
         
         for neigh_id in range(0,len(neigh.index)):
-            print(neigh_id)
+#            print(neigh_id)
             a=0
             one_neigh = neigh.iloc[neigh_id+a:neigh_id+a+1]
             new_area = gpd.sjoin(one_neigh, tiles, how='left', op='intersects')
@@ -177,10 +177,11 @@ tiles = gpd\
 
 tiles =  merge_tiles_and_building_info(tiles, building_info)
 
-squares_overlapped = merge_squares_and_neighs([0.51], neigh, tiles) 
+squares_overlapped = merge_squares_and_neighs([0.51], neigh, tiles)\
+                .reset_index()
 squares_overlapped = squares_overlapped.set_index('MAPID')\
                     .join(neigh_with_features.set_index('MAPID'),
                           lsuffix = '_nwf').reset_index()
-#
+squares_overlapped = squares_overlapped.rename(columns={'geometry':'geometry_neigh'})
 
-
+#squares_overlapped.rename(columns={'geometry_neigh':'geometry'}).plot(edgecolor='red')

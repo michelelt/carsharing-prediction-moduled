@@ -36,30 +36,63 @@ if __name__ == '__main__':
 ## =============================================================================
 ##     try to implement to save date in the file name
 ## =============================================================================
-    i_date = datetime.datetime(2017, 9, 6, 0, 0, 0)
-    f_date = datetime.datetime(2017, 9, 15, 0, 0, 0)
+    i_date = datetime.datetime(2016, 9, 6, 0, 0, 0)
+    f_date = datetime.datetime(2019, 9, 15, 0, 0, 0)
 ## =============================================================================
 ## 
 ## =============================================================================
-    dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
-    dp.upload_bookigns()
-    dp.standard_filtering()
-
-   
-    tmc = TilesMapCreator(dp.booking, data_path)
-    tmc.create_empity_tiles_map(500, 0.001, save=True)
-#    tiles = tmc.tiles
+#    dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
+#    dp.upload_bookigns()
+#    dp.standard_filtering()
+#
 #   
-#   
-    mc = MetricCreator(dp.booking, tmc.tiles, data_path)
-    bookings = mc.df
-    mc.merge_tiles_with_bookings()
-    mc.compute_metrics_per_tile(save=True)
-    
+#    tmc = TilesMapCreator(dp.booking, data_path)
+#    tmc.create_empity_tiles_map(500, 0.001, save=True)
+##    tiles = tmc.tiles
+##   
+##   
+#    mc = MetricCreator(dp.booking, tmc.tiles, data_path)
+#    bookings = mc.df
+#    mc.merge_tiles_with_bookings()
+#    mc.compute_metrics_per_tile(save=True)
+#    
     if city == 'Vancouver':
         from vancouver_opendata_merger import squares_overlapped
-        squares_overlapped.to_csv('aaaaaa.csv')
+#        
+    columns_to_delete=[
+    'MAPID', 'FID', 'lat', 'lon', 'geometry_nwf', 'geometry_neigh'
+            ]
+    corr_df = squares_overlapped.drop(columns_to_delete, axis=1)
+    corr_df = corr_df.astype(float)
+    corr = corr_df.corr()
     
+    row_to_keep=[]
+    for c in corr.columns:
+        if ('sum' in c)   or ('final' in  c)\
+        or ('start' in c) or ('count' in c) \
+        or ('Gi_' in c) :
+            row_to_keep.append(c)
+            
+    corr = corr.loc[row_to_keep].T.drop(row_to_keep)
+    
+    
+    from sklearn.linear_model import LinearRegression
+    
+    for tb in range(0,7):
+        prediction_label = 'c_start_%d'%tb
+        y = squares_overlapped[prediction_label].values
+        
+        df_temp = corr[prediction_label].sort_values(ascending=False).iloc[0:20]
+        X = squares_overlapped[df_temp.index].astype(float).values
+        
+        reg = LinearRegression().fit(X,y)
+        print('tb: %d, R^2 = %f' % (tb, reg.score(X,y)))
+    
+    
+
+
+
+        
 
         
 
