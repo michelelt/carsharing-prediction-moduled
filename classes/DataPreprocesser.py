@@ -20,6 +20,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import haversine, crs_
 from .DataDownloader import DataDownloader
+from .FileNameCreator import FileNameCreator
 
 class DataPreprocesser:
     
@@ -31,22 +32,28 @@ class DataPreprocesser:
         
         self.i_date = kwargs.get('i_date', None)
         self.f_date = kwargs.get('f_date', None)
+        
         self.is_downloaded = False
         
+        self.fnc = FileNameCreator(self.i_date, self.f_date, self.city)
+        
     def upload_bookigns(self):
-        if not os.path.isfile(self.data_path+self.city+'/%s_raw.csv'%self.city):
+        
+        file_id = 'raw'
+        filename = self.fnc.create_name(file_id)
+        if not os.path.isfile(self.data_path+self.city+'/%s'%filename):
             print('Download data')
             dd = DataDownloader(self.city, self.provider)
             
             self.booking = dd.query_data(dd.booking_collection, 
                                          i_date = self.i_date,
                                          f_date = self.f_date)
-            self.booking.to_csv(self.data_path+self.city+'/%s_raw.csv'%self.city, 
+            self.booking.to_csv(self.data_path+self.city+'/%s'%filename, 
                                 index=False)
             self.is_downloaded = True
         else:
             print('Upload data from local')
-            self.booking  = pd.read_csv(self.data_path+self.city+'/%s_raw.csv'%self.city)
+            self.booking  = pd.read_csv(self.data_path+self.city+'/%s'%filename)
             self.is_downloaded = True
             
             
@@ -133,7 +140,11 @@ class DataPreprocesser:
                 ]
         
     def standard_filtering(self):
-        if not os.path.isfile(self.data_path+self.city+'/%s_filtered_binned.csv'%self.city):
+        
+        
+        fileid = 'filtered_binned'
+        file_name = self.fnc.create_name(fileid)
+        if not os.path.isfile(self.data_path+self.city+'/%s'%file_name):
             print('Init L:%d '%len(self.booking) )
             
             print('Filter time')
@@ -157,14 +168,14 @@ class DataPreprocesser:
             print('save')
             self.booking.to_csv(self.data_path+\
                                 self.city+\
-                                '/%s_filtered_binned.csv'%self.city, 
+                                '/%s'%file_name, 
                                 index=False)
             
             
             
         else:
             print('Dataset already preprocessed')
-            self.booking = pd.read_csv(self.data_path+self.city+'/%s_filtered_binned.csv' %self.city)
+            self.booking = pd.read_csv(self.data_path+self.city+'/%s'%file_name)
         return
 
     def set_timebin(self):

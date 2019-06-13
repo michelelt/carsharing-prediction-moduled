@@ -140,12 +140,3 @@ class DataDownloader:
     
 
 
-
-        
-        
-        
-#dd = DataDownloader('Toronto', 'car2go')
-#i_date = datetime.datetime(2017, 9, 6, 0, 0, 0)
-#f_date = datetime.datetime(2017, 9, 7, 0, 0, 0)
-#bookings = dd.query_data(dd.booking_collection, i_date=i_date, f_date=f_date)
-

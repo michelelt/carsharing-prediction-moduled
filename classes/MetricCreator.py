@@ -20,6 +20,7 @@ from GlobalsFunctions import haversine, crs_
 from .DataPreprocesser import DataPreprocesser
 from .TilesMapCreator import TilesMapCreator
 from .LocalMemoryChecker import LocalMemoryChecker
+from .FileNameCreator import FileNameCreator
 
 
 from shapely.geometry import MultiPoint, Polygon, Point
@@ -33,7 +34,7 @@ from math import *
 
 class MetricCreator:
     
-    def __init__(self, bookings, tiles, data_path):
+    def __init__(self, bookings, tiles, i_date, f_date, data_path):
         self.df = bookings            
         self.tiles = tiles
         if 'FID' not in self.tiles.columns:
@@ -45,22 +46,30 @@ class MetricCreator:
         self.crs = crs_
         self.data_path=data_path
         self.city = bookings.iloc[0]['city']
-        self.tiles_with_metric=None
+        self.tiles_with_metric = None
+        self.i_date = i_date
+        self.f_date = f_date
         
-        lmc = LocalMemoryChecker(self.city, self.data_path)
+        lmc = LocalMemoryChecker(self.city, self.i_date, self.f_date, self.data_path)
         
-        if lmc.isDatasetDownloaded('tiles_metric'):
+        self.fnc = FileNameCreator(self.i_date, self.f_date, self.city)
+        file_name = self.fnc.create_dir('tiles_metric')
+        
+        if lmc.isDatasetDownloaded(file_name):
             print('Metric uploaded from local')
             self.tiles_with_metric = gpd.read_file(self.data_path+\
                                        self.city+\
-                                       '/%s_tiles_metric/%s_tiles_metric.shp'%(self.city, self.city),
+                                       '/%s/%s.shp'%(file_name, file_name),
                                        crs=self.crs)
-
-        if lmc.isDatasetDownloaded('filtered_binned_merged.csv'):
+        
+        
+#        if lmc.isDatasetDownloaded('filtered_binned_merged.csv'):
+        fileid='filtered_binned_merged'
+        if os.path.isfile(self.data_path + self.city+ '/' + self.fnc.create_name(fileid)):
             print('Merged dataset uploaded from local')
             self.df = pd.read_csv(self.data_path+\
                                        self.city+\
-                                       '/%s_filtered_binned_merged.csv'%(self.city)
+                                       '/' + self.fnc.create_name(fileid)
                                        )
         
     def merge_tiles_with_bookings(self):
@@ -88,8 +97,9 @@ class MetricCreator:
 
             merged = merged.fillna(-1)
             self.df = merged
-
-            self.df.to_csv(self.data_path + '%s/%s_filtered_binned_merged.csv'%(self.city, self.city))
+            fileid = 'filtered_binned_merged'
+            file_name = self.fnc.create_name(fileid)
+            self.df.to_csv(self.data_path + '%s/%s'%(self.city, file_name))
         return 
     
     
@@ -218,7 +228,9 @@ class MetricCreator:
                 return self.tiles
             
             #'data_path/Toronto/Toronto_tiles_shp'
-            self.tiles.to_file(self.data_path+self.city+'/%s_tiles_metric'%self.city)            
+            fileid = 'tiles_metric'
+            file_name = self.fnc.create_dir(fileid)
+            self.tiles.to_file(self.data_path+self.city+'/%s'%file_name)            
         
         
         return self.tiles_with_metric

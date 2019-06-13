@@ -11,6 +11,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import haversine, crs_
 from .LocalMemoryChecker import LocalMemoryChecker
+from .FileNameCreator import FileNameCreator
 
 
 from shapely.geometry import MultiPoint, Polygon, Point
@@ -20,7 +21,7 @@ import geopandas as gpd
 
 class TilesMapCreator:
     
-    def __init__(self,df, data_path):
+    def __init__(self,df, i_date, f_date, data_path):
         self.df = df
         self.min_lat = min(self.df.start_lat.min(), self.df.end_lat.min())
         self.min_lon = min(self.df.start_lon.min(), self.df.end_lon.min())
@@ -30,12 +31,18 @@ class TilesMapCreator:
         self.data_path = data_path
         self.city = self.get_city_from_df()
         self.tiles = None
+        self.i_date = i_date
+        self.f_date = f_date
         
-        lmc = LocalMemoryChecker(self.get_city_from_df(), self.data_path)
-        if lmc.isDatasetDownloaded('tiles'):
+        lmc = LocalMemoryChecker(self.get_city_from_df(), "", "", self.data_path)
+
+#        self.fnc = FileNameCreator(self.i_date, self.f_date, self.city )
+#        file_name = self.fnc.create_dir('tiles')
+        
+        if lmc.isDatasetDownloaded('Vancouver_tiles'):
             self.tiles = gpd.read_file(self.data_path+\
                                        self.city+\
-                                       '/%s_tiles/%s_tiles.shp'%(self.city, self.city),
+                                       '/%s/%s.shp'%(file_name, file_name),
                                        crs=self.crs)
             
 
