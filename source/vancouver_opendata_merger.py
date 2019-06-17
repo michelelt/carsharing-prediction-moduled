@@ -13,10 +13,13 @@ import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import *
+from classes.FileNameCreator import FileNameCreator
+
+import matplotlib.pyplot as plt
+
 
 import time
 
-data_path = './../data/Vancouver/Opendata/'
 def upload_data(data_path):
     
     #complete dataset with 673 columns, remove all, keeping 2
@@ -133,8 +136,10 @@ def merge_squares_and_neighs(toll_list, neigh, tiles):
 #            print(neigh_id)
             a=0
             one_neigh = neigh.iloc[neigh_id+a:neigh_id+a+1]
+#            print(one_neigh['NAME'])
             new_area = gpd.sjoin(one_neigh, tiles, how='left', op='intersects')
-
+            
+            
             tiles_to_check = tiles.loc[new_area.index_right.tolist()]
             tiles_to_check['MAPID'] = neigh.iloc[neigh_id+a:neigh_id+a+1]['MAPID'].values[0]
             
@@ -153,8 +158,10 @@ def merge_squares_and_neighs(toll_list, neigh, tiles):
                 
                 if a2/a1 <= toll:
                     tiles_to_check = tiles_to_check.drop(fid, axis=0)
-                 
+                    
             
+                 
+#            print()
             area = area.append(tiles_to_check)
                     
         neigh = neigh.set_index('MAPID')
@@ -167,21 +174,28 @@ def merge_squares_and_neighs(toll_list, neigh, tiles):
 # =============================================================================
 '''
 
-neigh= upload_data(data_path)
-neigh_with_features= merge_neigh_with_census(upload_data(data_path),data_path)
-building_info = gpd\
-        .read_file(data_path+'zoning_districts_shp/zoning_districts.shp')\
-        .to_crs(crs_)
-tiles = gpd\
-        .read_file(data_path+'../Vancouver_tiles_metric/Vancouver_tiles_metric.shp')
+def create_squares_overlapped(i_date, f_date, tiles, city, data_path):
+    neigh= upload_data(data_path)
+    
+    neigh_with_features= merge_neigh_with_census(upload_data(data_path),data_path)
+    building_info = gpd\
+            .read_file(data_path+'zoning_districts_shp/zoning_districts.shp')\
+            .to_crs(crs_)
+    
+    
+#    fnc  = FileNameCreator(i_date, f_date, city)
+#    file_name = fnc.create_dir('tiles_metric')
+#    tiles = gpd\
+#            .read_file(data_path+'../%s/%s.shp'%(file_name, file_name))
+    
+    tiles =  merge_tiles_and_building_info(tiles, building_info)
 
-tiles =  merge_tiles_and_building_info(tiles, building_info)
+    squares_overlapped = merge_squares_and_neighs([0.51], neigh, tiles)\
+                    .reset_index()
+    squares_overlapped = squares_overlapped.set_index('MAPID')\
+                        .join(neigh_with_features.set_index('MAPID'),
+                              lsuffix = '_nwf').reset_index()
+    squares_overlapped = squares_overlapped.rename(columns={'geometry':'geometry_neigh'})
+#    
+    return building_info, tiles, neigh_with_features, squares_overlapped
 
-squares_overlapped = merge_squares_and_neighs([0.51], neigh, tiles)\
-                .reset_index()
-squares_overlapped = squares_overlapped.set_index('MAPID')\
-                    .join(neigh_with_features.set_index('MAPID'),
-                          lsuffix = '_nwf').reset_index()
-squares_overlapped = squares_overlapped.rename(columns={'geometry':'geometry_neigh'})
-
-#squares_overlapped.rename(columns={'geometry_neigh':'geometry'}).plot(edgecolor='red')
