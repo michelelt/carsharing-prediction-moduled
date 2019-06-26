@@ -292,13 +292,17 @@ def str2polygon(geometry):
         ma = ma.split(',')
         
         for point in ma:
-            A = (float(point.strip().split(' ')[0]) , 
-                 float(point.strip().split(' ')[1])
-                     )
-            geo_points.append(A)           
+            try:
+                A = (float(point.strip().split(' ')[0]) , 
+                     float(point.strip().split(' ')[1])
+                         )
+            except ValueError:
+                print(point.strip().split(' '))
+                print()
+#            geo_points.append(A)           
 
     #    print (ps)
-    return Polygon(geo_points)
+#    return Polygon(geo_points)
 
 
 

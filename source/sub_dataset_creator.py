@@ -141,6 +141,8 @@ for index, row in tiles_per_neigh.iteritems():
 
 train = train.reset_index()
 train.to_csv(data_path+city+'/Regression/train.csv', index=False)
+from merge_streets_311 import add_emergencies_column
+add_emergencies_column()
 
 
 test = test.reset_index()

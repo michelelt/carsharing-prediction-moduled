@@ -95,29 +95,53 @@ test_norm = (test_norm - test_norm.mean())/test_norm.std()
 #
 #
 
-#from sklearn.linear_model import LinearRegression
-#
-#for tb in range(0,7):
-#    for nof in range(1,21,5):
-#        prediction_label = 'c_start_%d'%tb
-#        y_train = train_norm[prediction_label].values
-#        
-#        df_temp = corr[prediction_label].sort_values(ascending=False).iloc[1:nof+1]
-#        X_train = train_norm[df_temp.index].astype(float)
-#        
-#        reg = LinearRegression().fit(X_train,y_train)
-#        print('tb:%d, #F:%d, R^2=%f' % (tb, nof, reg.score(X_train,y_train)))
-#              
-#        '''
-#        prediction experiments
-#        '''
-#        X_test = test_norm[df_temp.index].astype(float).values
-#        y_test = test_norm[prediction_label]
-#        y_pred = np.matmul(X_test,reg.coef_)
-#        
-#        y_pred =( y_pred * test_std[prediction_label]) + test_mean[prediction_label]
-#        y_test =( y_test * test_std[prediction_label]) + test_mean[prediction_label]
-#        err =  np.abs((y_test-y_pred)) / y_test
+from sklearn.linear_model import LinearRegression
+import statsmodels.api as sm
+
+
+for tb in range(0,7):
+    for nof in range(20,21,5):
+        prediction_label = 'c_start_%d'%tb
+        y_train = train_norm[prediction_label].values
+        
+        df_temp = corr[prediction_label].sort_values(ascending=False).iloc[1:nof+1]
+        X_train = train_norm[df_temp.index].astype(float)
+        X2 = sm.add_constant(X_train)
+        
+
+        
+        reg = LinearRegression().fit(X_train,y_train)
+        print('tb:%d, #F:%d, R^2=%f' % (tb, nof, reg.score(X_train,y_train)))
+              
+        '''
+        prediction experiments
+        '''
+        X_test = test_norm[df_temp.index].astype(float).values
+        y_test = test_norm[prediction_label]
+        y_pred = np.matmul(X_test,reg.coef_)
+        
+        est = sm.OLS(y_pred, X2)
+        est2 = est.fit()
+        
+        y_pred =( y_pred * test_std[prediction_label]) + test_mean[prediction_label]
+        y_test =( y_test * test_std[prediction_label]) + test_mean[prediction_label]
+        err =  np.abs((y_test-y_pred)) / y_test
+        
+        break
+    break
+
+
+index_to_test = df_temp.index.tolist()
+
+for label in index_to_test:
+    fig,ax=plt.subplots()
+    ax.scatter(train[prediction_label], 
+               train[label], 
+               marker='x', 
+               s=0.5)
+    ax.set_xlabel(label)
+    ax.set_ylabel(prediction_label)
+    
 #
 #        
 #        '''

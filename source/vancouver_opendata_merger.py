@@ -168,11 +168,6 @@ def merge_squares_and_neighs(toll_list, neigh, tiles):
         tiles = tiles.reset_index() 
     return area
 
-'''
-# =============================================================================
-# implement the merging with the bookings!!!!
-# =============================================================================
-'''
 
 def create_squares_overlapped(i_date, f_date, tiles, city, data_path):
     neigh= upload_data(data_path)
