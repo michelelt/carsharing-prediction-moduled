@@ -30,8 +30,8 @@ import datetime
 
 
 if __name__ == '__main__':
-    city = 'Vancouver'
-    data_path = './../data/'
+    city = 'Toronto'
+    data_path = './../../data/'
     
 #    i_date = datetime.datetime(2017, 10, 25, 0, 0, 0)
 #    f_date = datetime.datetime(2017, 10, 31, 23, 59, 59)

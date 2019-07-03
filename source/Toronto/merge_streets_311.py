@@ -93,6 +93,13 @@ def add_emergencies_column(is_train):
                  '-' +df['Day'].map(str) +\
                  ' ' +df['Hour'].map(str) +\
                  ':' +df['Minute'].map(str) )
+    df['dayofweek'] = pd.DatetimeIndex( df['Year'].map(str)  +\
+                 '-' +df['Month'].map(str) +\
+                 '-' +df['Day'].map(str) +\
+                 ' ' +df['Hour'].map(str) +\
+                 ':' +df['Minute'].map(str) ).dayofweek
+    
+    df = df[df.dayofweek.isin([0,1,2,3,4])]
 
     if is_train == True:
         df = df[df.date <= limits['f_date_train']]
@@ -137,7 +144,10 @@ def add_emergencies_column(is_train):
     # merge with train dataset
     # =============================================================================
     
-    train = pd.read_csv('../data/Vancouver/Regression/train.csv')
+    if is_train == True:
+        train = pd.read_csv('../data/Vancouver/Regression/train.csv')
+    else:
+        train = pd.read_csv('../data/Vancouver/Regression/test.csv')
     tiles = gpd.read_file('../data/Vancouver/tiles_metric_None_None').to_crs(crs_).set_index('FID')
     tiles = tiles.loc[train.FID]
     train.set_index('FID', inplace=True)
