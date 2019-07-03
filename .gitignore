@@ -2,5 +2,6 @@ credential/credential.txt
 *.DS_Store
 *.csv
 *.pyc 
+*.pdf
 __pycache__/s
 data/*
