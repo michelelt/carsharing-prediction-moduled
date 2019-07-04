@@ -16,8 +16,10 @@ sys.path.append(os.path.dirname('..'))
 from GlobalsFunctions import starts_labels, finals_labels
 
 def normalize_dataset(data_path, city, ind_variable='time'):
-    train = pd.read_csv(data_path+city+'/Regression/train_emer.csv').fillna(0)
-    test  = pd.read_csv(data_path+city+'/Regression/test_emer.csv')
+    train = pd.read_csv(data_path+city+'/Regression/dataset_train_emer.csv').fillna(0)
+    test  = pd.read_csv(data_path+city+'/Regression/dataset_test_emer.csv')
+    
+    
     
     
     # =============================================================================
@@ -50,24 +52,26 @@ def normalize_dataset(data_path, city, ind_variable='time'):
         
     
     if ind_variable == 'space':
-
-        
         init_df = train.copy()
         for i in range(0,7):
             init_df[starts_labels[i]] = init_df[starts_labels[i]] + test[starts_labels[i]]
             init_df[finals_labels[i]] = init_df[finals_labels[i]] + test[finals_labels[i]]
         
-        train = init_df.sample(n=int(0.7*len(init_df)))
-        test  = init_df.loc[np.setdiff1d(init_df.index, train.index)]
+#        train = init_df.sample(n=int(0.7*len(init_df)))
+#        test  = init_df.loc[np.setdiff1d(init_df.index, train.index)]
         
         
         
     index2FID_train = train['FID']
     index2FID_test  = test['FID']
     
+    return train, test, index2FID_train, index2FID_test, 1, 2
+
+    
+    
     columns_to_delete=[
-    'MAPID', 'lat', 'lon', 'geometry_nwf', 'geometry_neigh','geometry',
-    'FID' 
+#    'MAPID', 'lat', 'lon', 'geometry_nwf', 'geometry_neigh','geometry',
+#    'FID' 
     ]
     
     

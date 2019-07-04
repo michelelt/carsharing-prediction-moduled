@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 25 17:39:23 2019
+Created on Thu Jul  4 21:03:43 2019
 
 @author: mc
 """
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jun 12 16:54:13 2019
-
-@author: mc
-"""
 
 import numpy as np
 import sklearn
@@ -41,63 +34,31 @@ data_path = './../../data/'
 city = 'Vancouver'
 ind_var = 'space'
 
-from normalize_tiles import normalize_dataset
+from normalize_neighs import normalize_dataset
+
+'''
+cretae a dataset having 21 test neighbours and 1 test (#21)
+implenet automatic k-fold validation
+'''
 train_norm, test_norm, index2FID_train, index2FID_test,\
 test_mean, test_std  = normalize_dataset(data_path, city, ind_variable=ind_var)
 
-#        
-#        
-#
-## =============================================================================
-## makes both dataset equal number of tiles
-## =============================================================================
-#train = train.set_index('FID').drop(fid_train_not_in_fid_test).reset_index()
-#test  = test.set_index('FID').drop(fid_test_not_in_fid_train).reset_index()
-#
-#MYLABEL = 'c_start_0'
-#if sum(train[MYLABEL] - test[MYLABEL]) == 0: 
-#    print('THE TWO DATAFRAMES ARE THE SAME!')
-#    
-#    
-#index2FID_train = train['FID']
-#index2FID_test  = test['FID']
-#
-#columns_to_delete=[
-#'MAPID', 'lat', 'lon', 'geometry_nwf', 'geometry_neigh','geometry',
-#'FID', 
-#        ]
-#test_mean = train.mean()
-#test_std  = train.std()
-#
-#
-## =============================================================================
-## preparing datasets for regression
-## =============================================================================
-#train_norm = train.drop(columns_to_delete, axis=1)
-#train_norm = (train_norm - train_norm.mean())/train_norm.std()
-#
-#corr_df = train_norm.astype(float)
-#corr = train_norm.corr()
-#
-#row_to_del =[]
-#col_to_keep=[]
-#
-##comment second if line to include start/finel count as regression feature
-#for c in train_norm.columns:
-#    if ('sum' in c)   or ('count' in  c)\
-#    or ('start' in c) or ('final'  in c)\
-#    or ('Gi_' in c) :
-#        row_to_del.append(c)
-##
-#    if 'start' in c or 'final'  in c: col_to_keep.append(c)
-#corr = corr.loc[corr.columns.difference(row_to_del)][col_to_keep]
-###
-###
-##test_norm = test.drop(columns_to_delete, axis=1)
-##test_norm = (test_norm - test_norm.mean())/test_norm.std()
-##
-##
-##
+
+'''
+Run the MRMR feature selection and saving results in 
+root/MicheleRankings/outputs/
+'''
+#from remote_feature_selection import MRMR
+#starts_labels = ['c_start_%d'%tb for tb in range(0,7)]
+#finals_labels = ['c_final_%d'%tb for tb in range(0,7)]
+#for label in starts_labels: MRMR(train_norm, label)
+#for label in finals_labels: MRMR(train_norm, label)
+
+label = 'c_start_0'
+ranked_feat_path = '../../MicheleRankings/outputs/%s/%s_mrmr_regression.csv'%(label, label)
+MID_ranks = pd.read_csv(ranked_feat_path)
+
+
 #from sklearn.linear_model import LinearRegression
 #from sklearn.metrics import mean_squared_error, r2_score
 #import statsmodels.api as sm

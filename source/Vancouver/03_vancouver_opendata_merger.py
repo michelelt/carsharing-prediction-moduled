@@ -12,6 +12,7 @@ import geopandas as gpd
 import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
+#sys.path.append('../../')
 from GlobalsFunctions import *
 from classes.FileNameCreator import FileNameCreator
 
@@ -113,7 +114,7 @@ def merge_tiles_and_building_info(tiles, building_info):
     for index in test_join.index:
         zone_id = index[0], 
         category = index[1]
-        value = test_join.loc[(zone_id, category)][0]
+        value = test_join.loc[(zone_id, category)].values[0]
         census_mc.loc[int(zone_id[0])][category] = value
     census_mc = census_mc.fillna(0)
 #    

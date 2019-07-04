@@ -11,20 +11,14 @@ import pandas as pd
 import  matplotlib.pyplot as plt
 import random
 
-def add_emergencies_column(is_train):
+def add_emergencies_column(dataset):
     def rnd_color():
-        
-        
         r =  lambda: random.randint(0,255)
         color_str = '#%02X%02X%02X' % (r(),r(),r())
         return color_str
-    
-    
     crs_ = {'init': 'epsg:4326'}
     
-
-    
-    path = '../data/Vancouver/Opendata/'
+    path = '../../data/Vancouver/Opendata/'
     data = 'shape_city_streets/public_streets.shp'
     
     gdf = gpd.read_file(path+data).to_crs(crs_)
@@ -60,12 +54,12 @@ def add_emergencies_column(is_train):
     # =============================================================================
     # standarzie the 311 calss dataset in order to merge with streets
     # =============================================================================
-    path = '../data/Vancouver/Opendata/CaseLocationsDetails_2017_CSV/201710CaseLocationsDetails.csv'
+    path = '../../data/Vancouver/Opendata/CaseLocationsDetails_2017_CSV/201710CaseLocationsDetails.csv'
     
     df = pd.read_csv(path)
     
     
-    with open('date_limits.txt', 'r') as fp:
+    with open('../date_limits.txt', 'r') as fp:
         dates = fp.readlines()
 
     import datetime
@@ -86,7 +80,7 @@ def add_emergencies_column(is_train):
         
         limits[date[0]] = dt
     
-    path = '../data/Vancouver/Opendata/CaseLocationsDetails_2017_CSV/201710CaseLocationsDetails.csv'
+    path = '../../data/Vancouver/Opendata/CaseLocationsDetails_2017_CSV/201710CaseLocationsDetails.csv'
     df = pd.read_csv(path)
     df['date'] =pd.DatetimeIndex( df['Year'].map(str)  +\
                  '-' +df['Month'].map(str) +\
@@ -101,11 +95,11 @@ def add_emergencies_column(is_train):
     
     df = df[df.dayofweek.isin([0,1,2,3,4])]
 
-    if is_train == True:
-        df = df[df.date <= limits['f_date_train']]
-        print('len df', len(df))
-    else:
-         df = df[df.date > limits['i_date_test']]
+#    if is_train == True:
+#        df = df[df.date <= limits['f_date_train']]
+#        print('len df', len(df))
+#    else:
+#         df = df[df.date > limits['i_date_test']]
          
     def merge_hblock_street_name(hb, sn):
         hb = hb.replace('#', '0')
@@ -139,38 +133,33 @@ def add_emergencies_column(is_train):
                 .join(df)\
                 .fillna(0)
     print(joined.Year.sum())
+    
                 
     # =============================================================================
     # merge with train dataset
     # =============================================================================
-    
-    if is_train == True:
-        train = pd.read_csv('../data/Vancouver/Regression/train.csv')
-    else:
-        train = pd.read_csv('../data/Vancouver/Regression/test.csv')
-    tiles = gpd.read_file('../data/Vancouver/tiles_metric_None_None').to_crs(crs_).set_index('FID')
-    tiles = tiles.loc[train.FID]
-    train.set_index('FID', inplace=True)
-    
-    train_gdf = gpd.GeoDataFrame(train, crs=crs_, geometry=tiles.geometry)
-    
+
+    train_gdf = dataset
+    if 'FID'in train_gdf.columns:
+        train_gdf = train_gdf.set_index('FID')
+        
     train_gdf_merged = gpd.sjoin(train_gdf, joined, op='intersects').reset_index()
     emeregency_per_zone = train_gdf_merged.groupby('index').sum()['Year'].fillna(0)
-    train['Emergencies'] = emeregency_per_zone
-    train_gdf['Emergencies'] = emeregency_per_zone
+    train_gdf['Emergencies'] = emeregency_per_zone.fillna(0)
     
-    train['Emergencies'] = train['Emergencies'].fillna(0)
-    if is_train == True:
-        train.to_csv('../data/Vancouver/Regression/train_emer.csv')
-    else:
-        train.to_csv('../data/Vancouver/Regression/test_emer.csv')
+#    train_gdf.iloc[0:-1].to_csv('../../data/Vancouver/Regression/dataset_train_emer.csv')
+#    train_gdf.iloc[-1].to_csv('../../data/Vancouver/Regression/dataset_test_emer.csv')
     
-    print(emeregency_per_zone.sum())
+    return  train_gdf
+#    else:
+#        train.to_csv('../../data/Vancouver/Regression/test_emer.csv')
     
+#    print(emeregency_per_zone.sum())
+#    
 
 
-add_emergencies_column(is_train=True)
-add_emergencies_column(is_train=False)
+#j = add_emergencies_column()
+#add_emergencies_column(is_train=False)
 
              
              

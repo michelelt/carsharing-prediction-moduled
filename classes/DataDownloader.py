@@ -34,7 +34,7 @@ class DataDownloader:
             self.parking_collection = 'enjoy_'+self.parking_collection
             self.booking_collection = 'enjoy_'+self.booking_collection
 
-        credential = open('../credential/credential.txt', 'r')
+        credential = open('../../credential/credential.txt', 'r')
         lines = credential.readlines()
         credential.close()
 
@@ -56,7 +56,9 @@ class DataDownloader:
             Collection = db[collection] #Collection for Enjoy watch
         except pymongo.errors.ServerSelectionTimeoutError as err:
             print(err)
+    
         return Collection
+    
     
     def post_process_data(self, bookings_df):
     	print("Post processing data beginning")

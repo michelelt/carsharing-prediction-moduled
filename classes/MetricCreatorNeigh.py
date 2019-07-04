@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun  6 12:25:39 2019
+Created on Wed Jul  3 17:37:51 2019
 
 @author: mc
 """
+
 
 import pandas as pd
 import geopandas as gpd
@@ -71,19 +72,15 @@ class MetricCreator:
                                        self.city+\
                                        '/' + self.fnc.create_name(fileid)
                                        )
-        square_test = tiles.geometry[0]
-        if self.is_square(square_test):
-            self.tiles_are_squares = True
-        else:
-            self.tiles_are_squares = False
-        # print('Tiles are squares',  self.tiles_are_squares)
         
     def merge_tiles_with_bookings(self):
+
+
         
         if ('index_start' in list(self.df.columns)) and ('index_end' in list(self.df.columns))\
         or\
         ('FID_right' in list(self.df.columns)) and ('FID_left' in list(self.df.columns)):
-            print('Dataset alrady merged with map. Uploaded from local.')
+            print('Dataset alrady merged with map. Uploaded from local')
             return
 
         print('Merging bookings with tiles')
@@ -94,7 +91,7 @@ class MetricCreator:
                                                             axis=1)
             df = gpd.GeoDataFrame(self.df, crs=self.crs)
         
-            merged = gpd.sjoin(df, self.tiles[['geometry', 'FID']], how='left', op='within')
+            merged = gpd.sjoin(df, self.tiles, how='left', op='within')
             merged = merged.rename(columns={
                     "index_right": "index_"+string, 
                     })
@@ -181,32 +178,6 @@ class MetricCreator:
         self.tiles = neigh
     
         return neigh
-
-    def is_square(self, square):
-
-        'tested only on Vancouver'
-        bounds = square.bounds
-        verteces = list(zip(*square.exterior.coords.xy))
-        
-        if len(verteces) != 4: return False
-        
-        for i in range(0,4):
-    
-            l1 = haversine(verteces[i][0],
-                           verteces[i][1],
-                           verteces[(i+1)%4][0],
-                           verteces[(i+1)%4][1],
-                           )
-            
-            l2  = haversine(verteces[(i+1)%4][0],
-                       verteces[(i+1)%4][1],
-                       verteces[(i+2)%4][0],
-                       verteces[(i+2)%4][1],
-                       )
-            
-            if not isclose(l1, l2, abs_tol=3.5):
-                return False
-        return True
             
         
     def compute_metrics_per_tile(self, save):
@@ -248,27 +219,19 @@ class MetricCreator:
         self.tiles  = self.tiles.join(df, how='left')
         self.tiles = self.tiles.fillna(0)
         
-        if self.tiles_are_squares:
-            print('Gi computed')
-            self.compute_Gi()
-        else:
-            print('Gi not computed')
-
-
+        self.compute_Gi()
         self.tiles_with_metric = self.tiles
         
         
         if save:
             if not os.path.isdir(self.data_path+self.city):
-                print('Impossivle to save the metrics table')
+                print('Impossivle to save the metrics tabele')
                 return self.tiles
-
+            
             #'data_path/Toronto/Toronto_tiles_shp'
             fileid = 'tiles_metric'
-            print('len tiles ', len(self.tiles))
-            file_name = self.fnc.create_dir(fileid) + '_' + str(len(self.tiles))
-            print(file_name)
-#            self.tiles.to_file(self.data_path+self.city+'/%s'%file_name)            
+            file_name = self.fnc.create_dir(fileid)
+            self.tiles.to_file(self.data_path+self.city+'/%s'%file_name)            
         
         
         return self.tiles_with_metric

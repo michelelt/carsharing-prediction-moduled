@@ -9,7 +9,7 @@ Created on Mon Jun 24 19:34:39 2019
 import pandas as pd
 import seaborn as sns
 
-path = '../data/Vancouver/Opendata/CaseLocationsDetails_2017_CSV/201710CaseLocationsDetails.csv'
+path = '../../data/Vancouver/Opendata/CaseLocationsDetails_2017_CSV/201710CaseLocationsDetails.csv'
 
 df = pd.read_csv(path)
 emergency = df.groupby(['Hour']).count()['Year']

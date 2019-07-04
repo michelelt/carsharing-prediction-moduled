@@ -21,6 +21,8 @@ sys.path.append(os.path.dirname(CURRENT_DIR))
 from GlobalsFunctions import haversine, crs_
 from .DataDownloader import DataDownloader
 from .FileNameCreator import FileNameCreator
+import time
+import datetime
 
 class DataPreprocesser:
     
@@ -34,14 +36,30 @@ class DataPreprocesser:
         self.f_date = kwargs.get('f_date', None)
         
         self.is_downloaded = False
-        
         self.fnc = FileNameCreator(self.i_date, self.f_date, self.city)
+        
         
     def upload_bookigns(self):
         
         file_id = 'raw'
         filename = self.fnc.create_name(file_id)
-        if not os.path.isfile(self.data_path+self.city+'/%s'%filename):
+        # print(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id))
+
+        if os.path.isfile(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id)):
+            print('Uploaded and filtered from local')
+            df = pd.read_csv(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id))
+            i_ts = time.mktime(self.i_date.timetuple())
+            f_ts = time.mktime(self.f_date.timetuple())
+            self.booking = df[(df.init_time > i_ts) & (df.init_time < f_ts)]
+            self.is_download = True
+
+        elif os.path.isfile(self.data_path+self.city+'/%s'%filename):
+            
+            print('Upload data from local')
+            self.booking = pd.read_csv(self.data_path+self.city+'/%s'%filename)
+            self.is_downloaded = True
+
+        else: #:
             print('Download data')
             dd = DataDownloader(self.city, self.provider)
             
@@ -51,24 +69,8 @@ class DataPreprocesser:
             self.booking.to_csv(self.data_path+self.city+'/%s'%filename, 
                                 index=False)
             self.is_downloaded = True
-        else:
-            print('Upload data from local')
-            self.booking  = pd.read_csv(self.data_path+self.city+'/%s'%filename)
-            self.is_downloaded = True
             
-            
-    def filter_time(self, min_time, max_time):
-        self.booking= self.booking[( self.booking.duration >= min_time)
-                                    &self.booking.duration <= max_time]
-        return
-    
-    
-    
-    def filter_distance(self, distance):
-        self.booking = self.booking[(self.booking.distance >= distance)]
-        return
-        
-    
+
         
     def detect_spatial_outliers(self):
         
@@ -126,10 +128,8 @@ class DataPreprocesser:
         fig,ax = plt.subplots()
         ax.set_title('after dbscan')
         ax.scatter(clean_df.start_lon, clean_df.start_lat, s=0.5, color='green')
-#        ax.scatter(outli_df1.start_lon, outli_df.start_lat, s=0.5, color='red')
+        ax.scatter(outli_df1.start_lon, outli_df.start_lat, s=0.5, color='red')
         
-        
-
         self.min_lat = min(clean_df.start_lat.min(), clean_df.end_lat.min())
         self.min_lon = min(clean_df.start_lon.min(), clean_df.end_lon.min())
         
@@ -152,20 +152,33 @@ class DataPreprocesser:
                 & (self.booking.end_lat <= self.max_lat)
                 & (self.booking.end_lon <= self.max_lon)
                 ]
+
+
+
+    def filter_time(self, min_time, max_time):
+        print(min_time, max_time)
+        self.booking= self.booking[  (self.booking.duration >= min_time)
+                                    &(self.booking.duration <= max_time)]
+        return
+    
+    
+    
+    def filter_distance(self, distance):
+        self.booking = self.booking[(self.booking.distance >= distance)]
+        return
         
+
     def standard_filtering(self):
-        
         
         fileid = 'filtered_binned'
         file_name = self.fnc.create_name(fileid)
+        print(file_name)
         if not os.path.isfile(self.data_path+self.city+'/%s'%file_name):
             print('Init L:%d '%len(self.booking) )
             
             print('Filter time')
             self.filter_time(60, 3600)
             print('L:%d\n'%len(self.booking ))
-
-            
             
             print('Filter distances')
             print('L:%d\n'%len(self.booking ))
@@ -186,11 +199,29 @@ class DataPreprocesser:
                                 index=False)
             
             
-            
         else:
             print('Dataset already preprocessed')
             self.booking = pd.read_csv(self.data_path+self.city+'/%s'%file_name)
         return
+
+    def filter_businessdays(self, filter_friday = False):
+        df = self.booking
+        business_days = [0,1,2,3]
+        if filter_friday: business_days.append(4)
+        df['dayofweek'] = pd.DatetimeIndex(df.init_date).dayofweek
+        df = df[~df.dayofweek.isin(business_days)]
+        self.booking =df
+
+
+    def filter_weekends(self, filter_friday = False):
+        df = self.booking
+        weekends = [5,6]
+        if filter_friday: weekends.append(4)
+        df['dayofweek'] = pd.DatetimeIndex(df.init_date).dayofweek
+        df = df[~df.dayofweek.isin(weekends)]
+        self.booking =df
+
+
 
     def set_timebin(self):
         
