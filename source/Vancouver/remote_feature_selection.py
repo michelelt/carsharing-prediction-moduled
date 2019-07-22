@@ -50,9 +50,13 @@ def run_MRMR(ssh, train_norm, Label_name):
     
 def download_all_outputs(ssh, Label_Name):
     with SCPClient(ssh.get_transport()) as scp:
-            scp.get(remote_path='/home/det_user/cocca/MicheleRankings/outputs/%s'%Label_Name, 
-                     local_path='../../MicheleRankings/outputs/', 
-                     recursive=True)
+        
+        if not os.path.isdir('../../MicheleRankings/outputs/'):
+            os.mkdir('../../MicheleRankings/outputs/')
+        
+        scp.get(remote_path='/home/det_user/cocca/MicheleRankings/outputs/%s'%Label_Name, 
+                 local_path='../../MicheleRankings/outputs/', 
+                 recursive=True)
 
 
 def MRMR(train_norm, Label_name):

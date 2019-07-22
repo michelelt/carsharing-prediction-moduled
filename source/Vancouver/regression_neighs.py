@@ -51,13 +51,25 @@ root/MicheleRankings/outputs/
 #from remote_feature_selection import MRMR
 #starts_labels = ['c_start_%d'%tb for tb in range(0,7)]
 #finals_labels = ['c_final_%d'%tb for tb in range(0,7)]
-#for label in starts_labels: MRMR(train_norm, label)
+#for label in starts_labels: 
+#    MRMR(train_norm, label)
+#    break
 #for label in finals_labels: MRMR(train_norm, label)
 
 label = 'c_start_0'
 ranked_feat_path = '../../MicheleRankings/outputs/%s/%s_mrmr_regression.csv'%(label, label)
 MID_ranks = pd.read_csv(ranked_feat_path)
 
+fp = open(ranked_feat_path, 'r')
+lines = fp.readlines()
+for i in range(len(lines)):
+    lines[i] = lines[i].split(',')
+    if i == 0:
+        lines[i].insert(1, 'Feature')
+    for j in range(len(lines[i])):
+        lines[i][j] = lines[i][j].lstrip().rstrip()
+        
+MID_ranks_2 = pd.DataFrame(lines)
 
 #from sklearn.linear_model import LinearRegression
 #from sklearn.metrics import mean_squared_error, r2_score
