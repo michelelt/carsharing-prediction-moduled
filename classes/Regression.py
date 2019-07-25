@@ -52,11 +52,19 @@ class Regression:
                 self.complete_dataset.drop(c, axis=1, inplace=True)
 #                self.valid.drop(c, axis=1, inplace=True)
                 
-    def split_datasets(self, target, train_indeces, valid_indeces):
+    def split_datasets(self, target, train_indeces, valid_indeces, *args, **kwargs):
         self.target = target
-        self.train = self.complete_dataset.loc[train_indeces]
+
+        '''
+        keep all the columns passed as optioanl parameter
+        '''
+        columns = kwargs.get('features_to_keep', self.complete_dataset.columns)
+        self.reduced_dataset = self.complete_dataset[columns]
+
+        self.target = target
+        self.train = self.reduced_dataset.loc[train_indeces]
 #                        .drop(['MAPID', 'geometry', 'NAME'], axis=1)
-        self.valid = self.complete_dataset.loc[valid_indeces]
+        self.valid = self.reduced_dataset.loc[valid_indeces]
 #                        .drop(['MAPID', 'geometry', 'NAME'], axis=1)
                         
         self.train[target] = self.targets_df.loc[self.train.index, target]
@@ -79,22 +87,33 @@ class Regression:
 
             
 
-    def config_svr_regressor(self, kernel, ):
-        C = kwargs.get('C', 100)
-        gamma = kwargs.get('gamma', 'auto')
-        epsilon = kwargs.get('epsilon', .1)
-        
+    def config_svr_regressor(self, kernel, *args, **kwargs ):
         if kernel == 'poly':
-            degree = kwargs.get('degree', 2)
-            coef0 = kwargs.get('coeff01',1)
-            svr = SVR(kernel='poly', C=C, 
-                      gamma=gamma, degree=degree, 
-                      epsilon=epsilon, coef0=coef0)
+            C       = kwargs.get('C', 100)
+            gamma   = kwargs.get('gamma', 'auto')
+            epsilon = kwargs.get('epsilon', .1)
+            degree  = kwargs.get('degree', 2)
+            coef0   = kwargs.get('coeff01',1)
+            svr = SVR(kernel=kernel, 
+                      C=C, 
+                      gamma=gamma, 
+                      degree=degree, 
+                      epsilon=epsilon, 
+                      coef0=coef0)
+            
         elif kernel == 'linear':
-            svr= SVR(kernel=kernel, C=C, gamma=gamma, epslion=epsilon)
+            C       = kwargs.get('C', 100)
+            gamma   = kwargs.get('gamma', 'auto')
+            epsilon = kwargs.get('epsilon', .1)
+            svr= SVR(kernel=kernel, C=C, gamma=gamma)
             
         elif kernel == 'rbf':
-            svr = SVR(kernel=kernel, C=C, gamma=gamma, epslion=epsilon)
+            C       = kwargs.get('C', 100)
+            gamma   = kwargs.get('gamma', 0.1)
+            epsilon = kwargs.get('epsilon', .1)
+            svr = SVR(kernel=kernel, C=C, gamma=gamma, epsilon=epsilon)
+            
+            
         else:
             svr = None
         
@@ -102,8 +121,6 @@ class Regression:
         
       
     
-        
-                
         
     def perform_regression(self, algorithm, *args, **kwargs):
         
@@ -120,7 +137,11 @@ class Regression:
         
         elif algorithm == 'svr':
             kernel = kwargs.get('kernel', 'linear')
-            method = self.config_svr_regressor(kernel)
+            s['algorithm'] = algorithm
+            s['kernel'] = kernel
+            
+            
+            method = self.config_svr_regressor(kernel, kwargs)
             if method == None:
                 print('SVR %s Kernel not implemented'%kernel)
                 return  False
@@ -139,11 +160,11 @@ class Regression:
         s['y_pred_valid'] =  y_pred_valid[0]
         s['y_valid'] = self.valid_target.values[0]
         s['er_r_pred_train'] = er_r_pred_train
-        s['n_estimators']=regressor.n_estimators
         s['target'] = self.target
         s['mean_target'] =  self.mean[self.target]
         s['std_target'] = self.std[self.target]
         s['is_normed'] = self.norm
+        s['nof'] = len(self.reduced_dataset.columns)
         
         if self.norm==True:
             s['rb_y_pred'] =  s['y_pred_valid']*self.std[self.target] + self.mean[self.target]
@@ -158,6 +179,14 @@ class Regression:
                             /(len(self.train_target))
             
             
+        if  algorithm == 'rfr':
+            score = pd.DataFrame(method.feature_importances_)\
+                                .rename(columns={0:'score'})
+            features = pd.DataFrame(self.reduced_dataset.columns.tolist())\
+                                .rename(columns={0:'feature'})
+                                
+            s['rank'] = features.join(score).set_index('feature').to_json()     
+
         self.results = s
         del s
         
@@ -169,7 +198,7 @@ class Regression:
     
         
         
-    
+
     
 from sklearn.model_selection import LeaveOneOut 
 import time
@@ -179,36 +208,34 @@ import datetime
     
 #city = 'Vancouver'
 #data_path  = './../data/'
-#
+##
 #loo = LeaveOneOut()
-##res = pd.DataFrame()
+#res = pd.DataFrame()
 #res = []
 #
 #start = time.time()
 #reg = Regression(data_path, city, norm=True)
 #reg.preprocess_data()
-#    
+##    
 #start = time.time()
-#for target in sorted(reg.targets):
-#    for n_estimators in range(10, 101, 10):
-#        for train_index, valid_index in  loo.split(reg.complete_dataset):
-#            
-#            print(target, n_estimators, valid_index)
-#            reg.set_norm(False)
-#            reg.split_datasets(target, train_index, valid_index)
+#target = 'c_start_0'
+#for kernel in ['rbf']:
+#    for train_index, valid_index in loo.split(reg.complete_dataset):
+#        
+#        reg.set_norm(False)
+#        reg.split_datasets(target, train_index, valid_index)
+#        train_target, valid_target  = reg.train_target, reg.valid_target
+#        reg.perform_regression('svr',  kernel  = kernel)
+#        res.append(reg.results)
+#        
+#        reg.set_norm(True)
+#        reg.split_datasets(target, train_index, valid_index)
 ##            train, valid = reg.train, reg.valid
-#            train_target, valid_target  = reg.train_target, reg.valid_target
-#            reg.perform_regression('rfr', n_estimators=n_estimators, random_state=0)
-#            res.append(reg.results)
-#            
-#            reg.set_norm(True)
-#            reg.split_datasets(target, train_index, valid_index)
-##            train, valid = reg.train, reg.valid
-#            train_target, valid_target  = reg.train_target, reg.valid_target
+#        train_target, valid_target  = reg.train_target, reg.valid_target
 #
-#            reg.perform_regression('rfr', n_estimators=n_estimators, random_state=0)
-#            res.append(reg.results)
-#            print()
+#        reg.perform_regression('svr', kernel=kernel)
+#        res.append(reg.results)
+#        print()
 #            
 #            
 #            
