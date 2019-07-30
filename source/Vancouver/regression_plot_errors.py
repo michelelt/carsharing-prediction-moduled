@@ -12,6 +12,12 @@ import matplotlib.pyplot as plt
 from math import sqrt
 import seaborn as sns
 
+import os, sys
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append('../../')  
+
+from GlobalsFunctions import create_errors_df, get_best_config
+
 import json
 
 
@@ -59,74 +65,6 @@ def plot_top_n_features(n, res_rfr, labels, save_plot=False):
     return {'mean': mean_ranks, 'median': median_ranks,  'sum': sum_ranks}
 
 
-
-def create_errors_df(res_rfr, res_svr):
-
-    rfr_df =  pd.read_csv(res_rfr).drop('rank', axis=1)
-    svr_df = pd.read_csv(res_svr)
-    
-    errors_list = []
-    for is_normed in rfr_df.is_normed.unique():
-        for target in rfr_df.target.unique():
-            for n_estim in rfr_df.n_estimators.unique():
-    #            normed = True
-    #            target = 'c_start_0'
-    #            n_estim = 40
-                
-                a = rfr_df[rfr_df.is_normed == is_normed]
-                a = a[a.target==target]
-                a = a[a.n_estimators == n_estim]
-                a = a.set_index('FID_valid')
-                if is_normed:
-                    y_pred_label = 'rb_y_pred'
-                    y_valid_label = 'rb_y_valid'
-                else:
-                    y_pred_label = 'y_pred_valid'
-                    y_valid_label = 'y_valid'            
-                    
-                    
-                err_perc = abs((a[y_pred_label] - a[y_valid_label])*100).div(a[y_valid_label])
-    
-                errors_list.append(
-                        { 'is_normed':is_normed,
-                          'target':target,
-                          'n_estim':n_estim,
-                          'err_mean': err_perc.mean(),
-                          'err_median':err_perc.median(),
-                          'err': err_perc.to_json(),
-                          'reg_type': 'rfr'
-                        })
-                
-    
-    for is_normed in svr_df.is_normed.unique():
-        for kernel in svr_df.kernel.unique():
-            for target in svr_df.target.unique():
-                a = svr_df[svr_df.is_normed == is_normed]
-                a = a[a.kernel == kernel] 
-                a = a[a.target == target]
-                
-                if is_normed:
-                    y_pred_label = 'rb_y_pred'
-                    y_valid_label = 'rb_y_valid'
-                else:
-                    y_pred_label = 'y_pred_valid'
-                    y_valid_label = 'y_valid'            
-                    
-                    
-                err_perc = abs((a[y_pred_label] - a[y_valid_label])*100).div(a[y_valid_label])
-                
-                errors_list.append(
-                        { 'is_normed':is_normed,
-                          'target':target,
-                          'kernel':kernel,
-                          'err_mean': err_perc.mean(),
-                          'err_median':err_perc.median(),
-                          'err': err_perc.to_json(),
-                          'reg_type': 'svr'
-                        })
-        
-    errors_df = pd.DataFrame(errors_list)
-    return errors_df
         
     
 def plot_errors_per_regression(errors_df,
@@ -266,6 +204,9 @@ def plot_avg_err_per_nestim(errors_df,
         
     #    break
         ax[row,col].legend(ncol=4)
+        
+
+    
 
 
 city = 'Vancouver'
@@ -273,22 +214,22 @@ data_path  = './../../data/'
 res_rfr = data_path+city+'/Regression/output_rfr/rfr_regression_dist.csv'
 res_svr = data_path+city+'/Regression/output_svr/svr_regression_dist.csv'
 
+
 errors_df = create_errors_df(res_rfr, res_svr)
-def booking_type(x) : return x['target'][2:-2]
-errors_df['booking_type'] = errors_df.apply(booking_type, axis=1)
+best_sol = get_best_config(errors_df)
 
 
-best_svr = errors_df[(errors_df.reg_type=='svr')]
-best_svr_start_g = best_svr.groupby(['kernel', 'is_normed', 'booking_type']).mean()
-
-best_rfr = errors_df[(errors_df.reg_type=='rfr')]
-best_rfr_start_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type']).mean()
 
 
-SP=False
-want_median=True
-ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
-ranks_mean=ranks['mean'].reset_index()
+
+#best_rfr = errors_df[(errors_df.reg_type=='rfr')]
+#best_rfr_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type']).mean()
+
+
+#SP=False
+#want_median=True
+#ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
+#ranks_mean=ranks['mean'].reset_index()
 
 #plot_errors_per_regression(errors_df, True, 'svr', want_median, save_plot=SP)
 #plot_errors_per_regression(errors_df, False, 'svr', want_median, save_plot=SP)

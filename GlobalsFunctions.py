@@ -179,3 +179,122 @@ def compute_mean_err_perc(train, target):
 
 
 
+def get_best_config(errors_df):
+    
+    def booking_type(x) : return x['target'][2:-2]
+    errors_df['booking_type'] = errors_df.apply(booking_type, axis=1)
+
+
+    best_svr = errors_df[(errors_df.reg_type=='svr')]
+    best_svr_g = best_svr\
+                .groupby(['kernel', 'is_normed', 'booking_type'])\
+                .mean()\
+                .sort_values('err_mean')
+            
+    best_rfr = errors_df[(errors_df.reg_type=='rfr')]
+    best_rfr_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type'])\
+                .mean()\
+                .sort_values('err_mean')
+    
+    
+    
+    min_start_found = False
+    min_final_found = False
+    sol = {}
+    for reg_type in ['svr', 'rfr']:
+        if reg_type == 'svr': df = best_svr_g
+        else: df = best_rfr_g
+        for index, row in df.iterrows():
+        
+            if index[2] == 'final' and not min_final_found:
+                best_min_final = {
+                        'variable': index[0],
+                        'normed': index[1],
+                        'targets': index[2]
+                        }
+                min_final_found = True
+                
+            if index[2] == 'start' and not min_start_found:
+                best_min_start = {
+                        'variable': index[0],
+                        'normed': index[1],
+                        'targets': index[2]
+                        }
+                min_start_found = True
+                
+            if min_start_found and min_final_found: break
+        sol[reg_type] = {'start': best_min_start, 'final':best_min_final}
+        
+    return sol
+
+
+def create_errors_df(res_rfr, res_svr):
+
+    rfr_df =  pd.read_csv(res_rfr).drop('rank', axis=1)
+    svr_df = pd.read_csv(res_svr)
+    
+    errors_list = []
+    for is_normed in rfr_df.is_normed.unique():
+        for target in rfr_df.target.unique():
+            for n_estim in rfr_df.n_estimators.unique():
+    #            normed = True
+    #            target = 'c_start_0'
+    #            n_estim = 40
+                
+                a = rfr_df[rfr_df.is_normed == is_normed]
+                a = a[a.target==target]
+                a = a[a.n_estimators == n_estim]
+                a = a.set_index('FID_valid')
+                if is_normed:
+                    y_pred_label = 'rb_y_pred'
+                    y_valid_label = 'rb_y_valid'
+                else:
+                    y_pred_label = 'y_pred_valid'
+                    y_valid_label = 'y_valid'            
+                    
+                    
+                err_perc = abs((a[y_pred_label] - a[y_valid_label])*100).div(a[y_valid_label])
+    
+                errors_list.append(
+                        { 'is_normed':is_normed,
+                          'target':target,
+                          'n_estim':n_estim,
+                          'err_mean': err_perc.mean(),
+                          'err_median':err_perc.median(),
+                          'err': err_perc.to_json(),
+                          'reg_type': 'rfr'
+                        })
+                
+    
+    for is_normed in svr_df.is_normed.unique():
+        for kernel in svr_df.kernel.unique():
+            for target in svr_df.target.unique():
+                a = svr_df[svr_df.is_normed == is_normed]
+                a = a[a.kernel == kernel] 
+                a = a[a.target == target]
+                
+                if is_normed:
+                    y_pred_label = 'rb_y_pred'
+                    y_valid_label = 'rb_y_valid'
+                else:
+                    y_pred_label = 'y_pred_valid'
+                    y_valid_label = 'y_valid'            
+                    
+                    
+                err_perc = abs((a[y_pred_label] - a[y_valid_label])*100).div(a[y_valid_label])
+                
+                errors_list.append(
+                        { 'is_normed':is_normed,
+                          'target':target,
+                          'kernel':kernel,
+                          'err_mean': err_perc.mean(),
+                          'err_median':err_perc.median(),
+                          'err': err_perc.to_json(),
+                          'reg_type': 'svr'
+                        })
+        
+    errors_df = pd.DataFrame(errors_list)
+    return errors_df
+
+
+
