@@ -10,6 +10,12 @@ import pandas as pd
 from sklearn.model_selection import LeaveOneOut
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
+import matplotlib.pyplot as plt
+import geopandas as gpd
+from shapely.geometry import Point, Polygon, MultiPolygon
+import numpy as np
+from math import *
+
 
 
 
@@ -194,27 +200,65 @@ class Regression:
 
 
     def set_norm(self, value): self.norm  = value
+    
+    
+    def add_distane_as_feature(self):
+        
+        
+        neighs = gpd.read_file(self.data_path\
+                       +self.city\
+                       +'/Opendata/Vancouver_macroArea/Vancouver_macroArea.shp')\
+                       .to_crs({'init': 'epsg:4326'})[['MAPID', 'geometry']]
+                       
+        neighs['centroid'] = neighs.centroid
+        base = Point(-123.2, 49.30)
+        
+        def haversine(lon1, lat1, lon2, lat2):
+            """
+            Calculate the great circle distance between two points
+            on the earth (specified in decimal degrees)
+            """
+            # convert decimal degrees to radians
+            lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+            # haversine formula
+            dlon = lon2 - lon1
+            dlat = lat2 - lat1
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+            c = 2 * asin(sqrt(a))
+            km = 6367 * c
+        #    return in meter
+        
+            return int(km*1000)
+        
+        
+        neighs['distance_from_referece'] =  neighs.apply(lambda x: haversine(base.x, base.y,
+                                                     x.centroid.x, x.centroid.y), axis=1)
+        self.complete_dataset['distance_from_referece'] = neighs['distance_from_referece']
+
+        
 
     
         
         
 
     
-from sklearn.model_selection import LeaveOneOut 
-import time
-import datetime
-  
+#from sklearn.model_selection import LeaveOneOut 
+#import time
+#import datetime
+#  
 
     
 #city = 'Vancouver'
 #data_path  = './../data/'
-##
+###
 #loo = LeaveOneOut()
 #res = pd.DataFrame()
 #res = []
-#
+##
 #start = time.time()
 #reg = Regression(data_path, city, norm=True)
+#reg.add_distane_as_feature()
+#df = reg.complete_dataset
 #reg.preprocess_data()
 ##    
 #start = time.time()
@@ -246,8 +290,21 @@ import datetime
     
 
 
-    
-    
+
+
+
+
+#fig,ax = plt.subplots()
+#neighs.plot(ax=ax, color='white', edgecolor='black')
+#ax.scatter(neighs.centroid.x, neighs.centroid.y)
+#ax.set_xticklabels(np.round(
+#        np.arange(-123.225, -122.026, 0.025),3), 
+#        rotation=15, ha='right')
+
+
+
+
+
 
 
 

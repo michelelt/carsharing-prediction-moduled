@@ -10,17 +10,9 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import cluster
-from sklearn.preprocessing import scale
-from math import *
-from shapely.geometry import Point
 
-import matplotlib.pyplot as plt
-import matplotlib.colors as pltc
-import numpy as np
+from paramiko import SSHClient
+from scp import SCPClient
 
 from shapely.geometry import Point, Polygon, MultiPolygon
 
@@ -83,35 +75,6 @@ def replace_truncated_labels(neigh):
                 
     neigh = neigh.rename(columns=dict_names)
     return neigh
-'''
-# =============================================================================
-# set of columns of censuns file to save for analysis
-# =============================================================================
-def columns_id_to_keep():
-    file = open(paths_dict['support_data_path'] + 'columns_to_keep.txt','r')
-    lines = file.readlines()
-    file.close()
-    columns_id_to_keep = []
-    for line in lines:
-        line = line.split('-')
-        if len(line) == 1:
-            columns_id_to_keep.append(int(line[0]))
-            
-        else:
-            for el in range(int(line[0]), int(line[1])+1):
-                columns_id_to_keep.append(el)
-    columns_id_to_keep_array = np.array(columns_id_to_keep) -1
-    return columns_id_to_keep_array
-
-def column_labels_to_keep():
-    file = open(paths_dict['support_data_path'] + 'columns_label_to_keep.txt','r')
-    lines = file.readlines()
-    
-    lines2 = []
-    for line in lines: lines2.append(line.rstrip().lstrip())
-    
-    return lines2
-'''
 
 # =============================================================================
 # upload from text file the columns on which I want to compute the most
@@ -177,8 +140,42 @@ def str2polygon(geometry):
     return Polygon(geo_points)
 
 
+def ssh_connection():
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect('bigdatadb.polito.it',
+                username='cocca',
+                password=open('../../credential/bigdatadb.txt','r').readline(),
+                look_for_keys=False)
+    return ssh
 
 
+def download_file(ssh, src, dst):
+    with SCPClient(ssh.get_transport()) as scp:
+        
+#        if not os.path.isdir('../../MicheleRankings/outputs/'):
+#            os.mkdir('../../MicheleRankings/outputs/')
+        
+        scp.get(remote_path=src, 
+                 local_path=dst, 
+                 recursive=True)
+        
+        print(src + ' Completede downloaded and saved in ' + dst)
+        
+def compute_target_labels():
+    starts  = []
+    finals  = [] 
+    for i in range(0,7): 
+    	starts.append('c_start_%d'%i) 
+    	finals.append('c_final_%d'%i)
+            
+    targets_dict = {'starts':starts, 'finals':finals}      
+    return targets_dict
+    
+    
+
+def compute_mean_err_perc(train, target):
+    return sum(abs(train-target)/target)/(len(target))
 
 
 
