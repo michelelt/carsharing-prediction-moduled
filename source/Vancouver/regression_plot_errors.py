@@ -214,41 +214,31 @@ data_path  = './../../data/'
 res_rfr = data_path+city+'/Regression/output_rfr/rfr_regression_dist.csv'
 res_svr = data_path+city+'/Regression/output_svr/svr_regression_dist.csv'
 
+rfr = pd.read_csv(res_rfr)
+
 
 errors_df = create_errors_df(res_rfr, res_svr)
 best_sol = get_best_config(errors_df)
 
 
 
+SP=False
+want_median=True
+ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
+ranks_mean=ranks['mean'].reset_index()
 
-
-#best_rfr = errors_df[(errors_df.reg_type=='rfr')]
-#best_rfr_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type']).mean()
-
-
-#SP=False
-#want_median=True
-#ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
-#ranks_mean=ranks['mean'].reset_index()
-
-#plot_errors_per_regression(errors_df, True, 'svr', want_median, save_plot=SP)
-#plot_errors_per_regression(errors_df, False, 'svr', want_median, save_plot=SP)
-#plot_errors_per_regression(errors_df, True, 'rfr', want_median, save_plot=SP)
-#plot_errors_per_regression(errors_df, False, 'rfr', want_median, save_plot=SP)
+plot_errors_per_regression(errors_df, True, 'svr', want_median, save_plot=SP)
+plot_errors_per_regression(errors_df, False, 'svr', want_median, save_plot=SP)
+plot_errors_per_regression(errors_df, True, 'rfr', want_median, save_plot=SP)
+plot_errors_per_regression(errors_df, False, 'rfr', want_median, save_plot=SP)
 
 
 
 
-#plot_avg_err_per_nestim(errors_df, True, 'svr')
-#
-#
-#plot_avg_err_per_nestim(errors_df, False, 'svr')
-
-
-#plot_avg_err_per_nestim(errors_df, True, 'rfr')
-
-
-#plot_avg_err_per_nestim(errors_df, False, 'rfr')
+plot_avg_err_per_nestim(errors_df, True, 'svr')
+plot_avg_err_per_nestim(errors_df, False, 'svr')
+plot_avg_err_per_nestim(errors_df, True, 'rfr')
+plot_avg_err_per_nestim(errors_df, False, 'rfr')
 #
 
 

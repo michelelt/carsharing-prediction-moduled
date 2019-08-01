@@ -145,8 +145,6 @@ class Regression:
             kernel = kwargs.get('kernel', 'linear')
             s['algorithm'] = algorithm
             s['kernel'] = kernel
-            
-            
             method = self.config_svr_regressor(kernel, kwargs)
             if method == None:
                 print('SVR %s Kernel not implemented'%kernel)

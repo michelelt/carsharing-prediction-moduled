@@ -192,6 +192,7 @@ def get_best_config(errors_df):
                 .sort_values('err_mean')
             
     best_rfr = errors_df[(errors_df.reg_type=='rfr')]
+    print(best_rfr.columns)
     best_rfr_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type'])\
                 .mean()\
                 .sort_values('err_mean')
@@ -222,8 +223,11 @@ def get_best_config(errors_df):
                         }
                 min_start_found = True
                 
-            if min_start_found and min_final_found: break
-        sol[reg_type] = {'start': best_min_start, 'final':best_min_final}
+            if min_start_found and min_final_found: 
+                sol[reg_type] = {'start': best_min_start, 'final':best_min_final}
+                min_start_found = False
+                min_final_found = False
+                break
         
     return sol
 
@@ -232,8 +236,8 @@ def create_errors_df(res_rfr, res_svr):
 
     rfr_df =  pd.read_csv(res_rfr).drop('rank', axis=1)
     svr_df = pd.read_csv(res_svr)
-    
     errors_list = []
+    
     for is_normed in rfr_df.is_normed.unique():
         for target in rfr_df.target.unique():
             for n_estim in rfr_df.n_estimators.unique():
@@ -281,8 +285,9 @@ def create_errors_df(res_rfr, res_svr):
                     y_valid_label = 'y_valid'            
                     
                     
-                err_perc = abs((a[y_pred_label] - a[y_valid_label])*100).div(a[y_valid_label])
-                
+                err_perc = abs((a.set_index('FID_valid')[y_pred_label] - 
+                                a.set_index('FID_valid')[y_valid_label])*100)\
+                                .div(a.set_index('FID_valid')[y_valid_label])
                 errors_list.append(
                         { 'is_normed':is_normed,
                           'target':target,
