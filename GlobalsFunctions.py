@@ -177,6 +177,11 @@ def compute_target_labels():
 def compute_mean_err_perc(train, target):
     return sum(abs(train-target)/target)/(len(target))
 
+def compute_rmse(train, target):
+    square = np.power(train-target, 2)
+    square = square.div(len(target))
+    return np.sqrt(sum(square))
+
 
 
 def get_best_config(errors_df):
@@ -189,13 +194,13 @@ def get_best_config(errors_df):
     best_svr_g = best_svr\
                 .groupby(['kernel', 'is_normed', 'booking_type'])\
                 .mean()\
-                .sort_values('err_mean')
+                .sort_values('err_mean_perc')
             
     best_rfr = errors_df[(errors_df.reg_type=='rfr')]
     print(best_rfr.columns)
     best_rfr_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type'])\
                 .mean()\
-                .sort_values('err_mean')
+                .sort_values('err_mean_perc')
     
     
     
@@ -239,65 +244,96 @@ def create_errors_df(res_rfr, res_svr):
     errors_list = []
     
     for is_normed in rfr_df.is_normed.unique():
-        for target in rfr_df.target.unique():
-            for n_estim in rfr_df.n_estimators.unique():
-    #            normed = True
-    #            target = 'c_start_0'
-    #            n_estim = 40
-                
-                a = rfr_df[rfr_df.is_normed == is_normed]
-                a = a[a.target==target]
-                a = a[a.n_estimators == n_estim]
-                a = a.set_index('FID_valid')
-                if is_normed:
-                    y_pred_label = 'rb_y_pred'
-                    y_valid_label = 'rb_y_valid'
-                else:
-                    y_pred_label = 'y_pred_valid'
-                    y_valid_label = 'y_valid'            
+        for n_estim in rfr_df.n_estimators.unique():
+            for target in rfr_df.target.unique():
+                for nof in rfr_df.nof.unique():
+        #            normed = True
+        #            target = 'c_start_0'
+        #            n_estim = 40
+                    
+                    a = rfr_df[rfr_df.is_normed == is_normed]
+                    a = a[a.target==target]
+                    a = a[a.n_estimators == n_estim]
+                    a = a[a.nof == nof]
+
+
+                    a = a.set_index('FID_valid')
+                    if is_normed:
+                        y_pred_label = 'rb_y_pred'
+                        y_valid_label = 'rb_y_valid'
+                    else:
+                        y_pred_label = 'y_pred_valid'
+                        y_valid_label = 'y_valid'            
+                        
+                        
+                    err_abs =  abs((a[y_pred_label] - a[y_valid_label])).div(a[y_valid_label])
+                    err_perc = err_abs*100
+                    rmse = compute_rmse(a[y_pred_label], a[y_valid_label])
+                    errors_list.append(
+                            { 'is_normed':is_normed,
+                              'target':target,
+                              'n_estim':n_estim,
+                              'err_mean_perc': err_perc.mean(),
+                              'err_median_perc':err_perc.median(),
+                              'err_mean_abs':err_abs.mean(),
+                              'err_median_abs':err_abs.median(),
+                              'rmse':rmse,
+                              'err': err_perc.to_json(),
+                              'reg_type': 'rfr',
+                              'nof':nof
+                            })
                     
                     
-                err_perc = abs((a[y_pred_label] - a[y_valid_label])*100).div(a[y_valid_label])
-    
-                errors_list.append(
-                        { 'is_normed':is_normed,
-                          'target':target,
-                          'n_estim':n_estim,
-                          'err_mean': err_perc.mean(),
-                          'err_median':err_perc.median(),
-                          'err': err_perc.to_json(),
-                          'reg_type': 'rfr'
-                        })
-                
     
     for is_normed in svr_df.is_normed.unique():
         for kernel in svr_df.kernel.unique():
             for target in svr_df.target.unique():
-                a = svr_df[svr_df.is_normed == is_normed]
-                a = a[a.kernel == kernel] 
-                a = a[a.target == target]
-                
-                if is_normed:
-                    y_pred_label = 'rb_y_pred'
-                    y_valid_label = 'rb_y_valid'
-                else:
-                    y_pred_label = 'y_pred_valid'
-                    y_valid_label = 'y_valid'            
+                for nof in svr_df.nof.unique():
                     
+                    a = svr_df[svr_df.is_normed == is_normed]
+                    a = a[a.kernel == kernel] 
+                    a = a[a.target == target]
+                    a = a[a.nof == nof]
                     
-                err_perc = abs((a.set_index('FID_valid')[y_pred_label] - 
-                                a.set_index('FID_valid')[y_valid_label])*100)\
-                                .div(a.set_index('FID_valid')[y_valid_label])
-                errors_list.append(
-                        { 'is_normed':is_normed,
-                          'target':target,
-                          'kernel':kernel,
-                          'err_mean': err_perc.mean(),
-                          'err_median':err_perc.median(),
-                          'err': err_perc.to_json(),
-                          'reg_type': 'svr'
-                        })
-        
+                    if is_normed:
+                        y_pred_label = 'rb_y_pred'
+                        y_valid_label = 'rb_y_valid'
+                    else:
+                        y_pred_label = 'y_pred_valid'
+                        y_valid_label = 'y_valid'            
+                        
+                        
+                    err_abs = abs((a.set_index('FID_valid')[y_pred_label] - 
+                                    a.set_index('FID_valid')[y_valid_label]))\
+                                    .div(a.set_index('FID_valid')[y_valid_label])   
+                    err_perc = err_abs*100
+                    rmse = compute_rmse(a.set_index('FID_valid')[y_pred_label], 
+                                        a.set_index('FID_valid')[y_valid_label])
+                    errors_list.append(
+                            { 'is_normed':is_normed,
+                              'target':target,
+                              'kernel':kernel,
+                              'err_mean_perc': err_perc.mean(),
+                              'err_median_perc':err_perc.median(),
+                              'err_mean_abs':err_abs.mean(),
+                              'err_median_abs':err_abs.median(),
+                              'rmse':rmse,
+                              'err': err_perc.to_json(),
+                              'reg_type': 'svr',
+                              'nof':nof
+                            })
+
+#                    errors_list.append(
+#                            { 'is_normed':is_normed,
+#                              'target':target,
+#                              'kernel':kernel,
+#                              'err_mean': err_perc.mean(),
+#                              'err_median':err_perc.median(),
+#                              'err': err_perc.to_json(),
+#                              'reg_type': 'svr',
+#                              'nof':nof
+#                            })
+            
     errors_df = pd.DataFrame(errors_list)
     return errors_df
 

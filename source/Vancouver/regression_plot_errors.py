@@ -59,6 +59,8 @@ def plot_top_n_features(n, res_rfr, labels, save_plot=False):
         axs[i].legend()
         
     if save_plot:
+        print(data_path+city+'/Regression/feature_ranks.pdf')
+
         plt.savefig(data_path+city+'/Regression/feature_ranks.pdf',
                     bbox_inches = 'tight')
         
@@ -215,6 +217,7 @@ res_rfr = data_path+city+'/Regression/output_rfr/rfr_regression_dist.csv'
 res_svr = data_path+city+'/Regression/output_svr/svr_regression_dist.csv'
 
 rfr = pd.read_csv(res_rfr)
+svr = pd.read_csv(res_svr)
 
 
 errors_df = create_errors_df(res_rfr, res_svr)
@@ -223,22 +226,22 @@ best_sol = get_best_config(errors_df)
 
 
 SP=False
-want_median=True
-ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
-ranks_mean=ranks['mean'].reset_index()
+#want_median=True
+#ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
+#ranks_mean=ranks['mean'].reset_index()
 
-plot_errors_per_regression(errors_df, True, 'svr', want_median, save_plot=SP)
-plot_errors_per_regression(errors_df, False, 'svr', want_median, save_plot=SP)
-plot_errors_per_regression(errors_df, True, 'rfr', want_median, save_plot=SP)
-plot_errors_per_regression(errors_df, False, 'rfr', want_median, save_plot=SP)
-
-
+#plot_errors_per_regression(errors_df, True, 'svr', want_median, save_plot=SP)
+#plot_errors_per_regression(errors_df, False, 'svr', want_median, save_plot=SP)
+#plot_errors_per_regression(errors_df, True, 'rfr', want_median, save_plot=SP)
+#plot_errors_per_regression(errors_df, False, 'rfr', want_median, save_plot=SP)
 
 
-plot_avg_err_per_nestim(errors_df, True, 'svr')
-plot_avg_err_per_nestim(errors_df, False, 'svr')
-plot_avg_err_per_nestim(errors_df, True, 'rfr')
-plot_avg_err_per_nestim(errors_df, False, 'rfr')
+
+
+#plot_avg_err_per_nestim(errors_df, True, 'svr')
+#plot_avg_err_per_nestim(errors_df, False, 'svr')
+#plot_avg_err_per_nestim(errors_df, True, 'rfr')
+#plot_avg_err_per_nestim(errors_df, False, 'rfr')
 #
 
 

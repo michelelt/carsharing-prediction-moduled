@@ -26,7 +26,7 @@ res = []
 #
 start = time.time()
 reg = Regression(data_path, city, norm=True)
-reg.add_distane_as_feature()
+reg.add_distance_as_feature(base_in_downtown=True)
 reg.preprocess_data()
 
 feature_ranks = pd.read_csv(data_path+city+'/Regression/feature_ranks.csv')

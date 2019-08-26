@@ -108,8 +108,8 @@ if __name__ == '__main__':
         )
 
     dataset = add_emergencies_column(neigh_with_metric)
-    dataset.iloc[0:20].to_csv('../../data/Vancouver/Regression/dataset_train_emer.csv')
-    dataset.iloc[20:22].to_csv('../../data/Vancouver/Regression/dataset_test_emer.csv')
+    dataset.iloc[0:21].to_csv('../../data/Vancouver/Regression/dataset_train_emer.csv')
+    dataset.iloc[21:22].to_csv('../../data/Vancouver/Regression/dataset_test_emer.csv')
 #    
     
 #    # =========================================================================
