@@ -200,7 +200,7 @@ class Regression:
     def set_norm(self, value): self.norm  = value
     
     
-    def add_distance_as_feature(self, base_in_downtonw =False):
+    def add_distance_as_feature(self, base_in_downtown =False):
         
         
         neighs = gpd.read_file(self.data_path\
@@ -210,8 +210,7 @@ class Regression:
                        
         neighs['centroid'] = neighs.centroid
         base = Point(-123.2, 49.30)
-
-        if base_in_downtonw:
+        if base_in_downtown:
             base = neighs[neighs.MAPID == 'CBD'].centroid
         
         

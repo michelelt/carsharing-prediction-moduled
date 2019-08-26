@@ -29,9 +29,9 @@ reg = Regression(data_path, city, norm=True)
 reg.add_distance_as_feature(base_in_downtown=True)
 reg.preprocess_data()
 
-feature_ranks = pd.read_csv(data_path+city+'/Regression/feature_ranks.csv')
-most_ranked = feature_ranks.mean().sort_values(ascending=False)
-df = reg.complete_dataset
+#feature_ranks = pd.read_csv(data_path+city+'/Regression/feature_ranks.csv')
+#most_ranked = feature_ranks.mean().sort_values(ascending=False)
+#df = reg.complete_dataset
 
 ## =============================================================================
 ## RFR regression   
