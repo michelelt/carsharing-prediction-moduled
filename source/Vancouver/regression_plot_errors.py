@@ -16,7 +16,10 @@ import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append('../../')  
 
-from GlobalsFunctions import create_errors_df, get_best_config
+from GlobalsFunctions import create_errors_df,\
+    get_best_config,\
+    ssh_connection,\
+    download_file
 
 import json
 
@@ -73,6 +76,8 @@ def plot_errors_per_regression(errors_df,
                                is_normed,
                                reg_type,
                                want_medians,
+                               param1,
+                               param2,
                                save_plot=False):
 
     
@@ -90,16 +95,16 @@ def plot_errors_per_regression(errors_df,
                        
     if want_medians:
         configs = [
-                [0,0,  starts, 'err_mean'],
-                [0,1,  starts, 'err_median'],
-                [1,0,  finals, 'err_mean'],
-                [1,1,  finals, 'err_median'],
+                [0,0,  starts, param1],
+                [0,1,  starts, param2],
+                [1,0,  finals, param1],
+                [1,1,  finals, param2],
                 ]
         nrows, ncols = 2,2
     else:
         configs = [
-                [0,0,  starts, 'err_mean'],
-                [1,0,  finals, 'err_mean'],
+                [0,0,  starts, param1],
+                [1,0,  finals, param1],
                 ]
         nrows, ncols = 2,1
     
@@ -150,7 +155,9 @@ def plot_errors_per_regression(errors_df,
 
 def plot_avg_err_per_nestim(errors_df,
                                is_normed,
-                               reg_type):
+                               reg_type, 
+                               param1,
+                               param2):
 
     starts = errors_df[errors_df\
                        .target\
@@ -163,10 +170,10 @@ def plot_avg_err_per_nestim(errors_df,
                        .contains('final')]['target']\
                        .unique().tolist()
     configs = [
-            [0,0,  starts, 'err_mean'],
-            [0,1,  starts, 'err_median'],
-            [1,0,  finals, 'err_mean'],
-            [1,1,  finals, 'err_median'],
+            [0,0,  starts, param1],
+            [0,1,  starts, param2],
+            [1,0,  finals, param1],
+            [1,1,  finals, param2],
             ]
     
     
@@ -211,11 +218,24 @@ def plot_avg_err_per_nestim(errors_df,
     
 
 
+
+
+''''''
+
 city = 'Vancouver'
 data_path  = './../../data/'
-res_rfr = data_path+city+'/Regression/output_rfr/rfr_regression_dist.csv'
-res_svr = data_path+city+'/Regression/output_svr/svr_regression_dist.csv'
 
+filename_svr = 'svr_regression_dist.csv'
+filename_rfr = 'rfr_regression_dist.csv'
+
+dst_svr = data_path+city+'/Regression/output_svr'
+dst_rfr = data_path+city+'/Regression/output_rfr'
+
+
+
+
+res_rfr = dst_rfr+'/'+filename_rfr
+res_svr = dst_svr+'/'+filename_svr
 rfr = pd.read_csv(res_rfr)
 svr = pd.read_csv(res_svr)
 
@@ -228,32 +248,30 @@ best_sol = get_best_config(errors_df)
 SP=False
 #want_median=True
 #ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
-#ranks_mean=ranks['mean'].reset_index()
+##ranks_mean=ranks['mean'].reset_index()
+param1='err_mean_perc'
+param2='rmse'
+plot_errors_per_regression(errors_df, True, 'svr', want_median, 
+                           param1, param2, save_plot=SP)
+plot_errors_per_regression(errors_df, False, 'svr', want_median,
+                            param1, param2, save_plot=SP)
 
-#plot_errors_per_regression(errors_df, True, 'svr', want_median, save_plot=SP)
-#plot_errors_per_regression(errors_df, False, 'svr', want_median, save_plot=SP)
-#plot_errors_per_regression(errors_df, True, 'rfr', want_median, save_plot=SP)
-#plot_errors_per_regression(errors_df, False, 'rfr', want_median, save_plot=SP)
+
+plot_errors_per_regression(errors_df, True, 'rfr', want_median, 
+                            param1, param2, save_plot=SP)
+plot_errors_per_regression(errors_df, False, 'rfr', want_median, 
+                            param1, param2, save_plot=SP)
 
 
 
 
-#plot_avg_err_per_nestim(errors_df, True, 'svr')
-#plot_avg_err_per_nestim(errors_df, False, 'svr')
-#plot_avg_err_per_nestim(errors_df, True, 'rfr')
-#plot_avg_err_per_nestim(errors_df, False, 'rfr')
-#
+plot_avg_err_per_nestim(errors_df, True, 'svr', param1, param2)
+plot_avg_err_per_nestim(errors_df, False, 'svr', param1, param2)
+plot_avg_err_per_nestim(errors_df, True, 'rfr', param1, param2)
+plot_avg_err_per_nestim(errors_df, False, 'rfr', param1, param2)
+
 
 
     
     
     
-
-
-#rfr_df =  pd.read_csv(res_rfr)
-#ranks_list = []
-#for rank_str in rfr_df['rank']:
-#    ranks_list.append(json.loads(rank_str)['score'])
-#ranks_df = pd.DataFrame(ranks_list)
-#
-#ranks_df.to_csv(data_path+city+'/Regression/feature_ranks.csv', index=False)

@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from GlobalsFunctions import ssh_connection,\
         download_file,\
         compute_target_labels,\
-        compute_mean_err,\
+        compute_mean_err_perc,\
         compute_rmse,\
         create_errors_df,\
         get_best_config
@@ -55,21 +55,10 @@ def compute_average_mean_error(nof, normed, target, df):
     average_mean_error =  df[True\
             &(df.nof == nof )\
             &(df.target == target)
-            ]
-    
-#    print(average_mean_error)    
-#    if normed:
-#        valid = 'rb_y_valid'
-#        pred  = 'rb_y_pred'
-#    else:
-#        valid = 'y_valid'
-#        pred = 'y_pred_valid'
-    
-#    err_perc = compute_mean_err(average_mean_error[pred],
-#                                     average_mean_error[valid])*100
-        
-    err_perc = average_mean_error['err_mean'].values
-    return err_perc
+            ]        
+    err_perc = average_mean_error['err_mean_perc'].values
+    rmse = average_mean_error['rmse'].values
+    return [err_perc,rmse]
 
 
 
@@ -96,7 +85,7 @@ def configs_learning_curve(errors_df, reg_type, normed, variable, targets):
     data = {}
     for target in compute_target_labels()[targets]:
         for nof in range(1,len(errors_df.nof.unique())):
-            ame.append(compute_average_mean_error(nof, normed, target, error_df))
+            ame.append(compute_average_mean_error(nof, normed, target, error_df)[1])
             
         data[target] = {
                 'x':  range(1,len(errors_df.nof.unique())),

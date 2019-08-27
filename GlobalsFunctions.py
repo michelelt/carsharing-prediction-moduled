@@ -160,7 +160,7 @@ def download_file(ssh, src, dst):
                  local_path=dst, 
                  recursive=True)
         
-        print(src + ' Completede downloaded and saved in ' + dst)
+        print(src + ' Completed downloaded and saved in ' + dst)
         
 def compute_target_labels():
     starts  = []

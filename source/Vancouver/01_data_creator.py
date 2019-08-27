@@ -69,8 +69,6 @@ if __name__ == '__main__':
     i_date = datetime.datetime(2017, 10, 1,  0,  0,  0)
     f_date = datetime.datetime(2017, 10, 31, 23, 59, 59)
     
-    
- 
   
     dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
     dp.upload_bookigns()
