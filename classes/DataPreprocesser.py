@@ -76,7 +76,7 @@ class DataPreprocesser:
         
         if self.city == 'Vancouver':
             vancouver_limits = pd\
-                            .read_csv(self.data_path+self.city+'/Vacouver_limits.csv')\
+                            .read_csv(self.data_path+self.city+'/Vancouver_limits.csv')\
                             .astype(float)
                                 
             self.min_lat = vancouver_limits['min_lat'].values[0]

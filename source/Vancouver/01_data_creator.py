@@ -57,8 +57,61 @@ import datetime
 
 # =============================================================================
 # service_functions
+# ONLY FILE TO RUN TO GENERATE DATA
 # =============================================================================
-
+def read_time_interval():
+    out_time_interval = {'start':{}, 'end':{}}
+    if len(sys.argv) == 1:
+        out_time_interval['start'] = {
+                'y':2017,
+                'm':10,
+                'd':1,
+                'h':0,
+                'min':0,
+                's':0
+                }
+        
+        out_time_interval['final'] = {
+                'y':2017,
+                'm':10,
+                'd':31,
+                'h':23,
+                'min':59,
+                's':59
+                }
+    elif len(sys.argv)  == 3:
+        init = sys.argv[1]
+        init_date, init_time = init.split('T')[0], init.split('T')[1]
+        init_date = init_date.split('-')
+        init_time = init_time.split(':')
+        
+        out_time_interval['start'] = {
+            'y':int(init_date[0]),
+            'm':int(init_date[1]),
+            'd':int(init_date[2]),
+            'h':int(init_time[0]),
+            'min':int(init_time[1]),
+            's':int(init_time[2])
+            }
+        
+        final = sys.argv[1]
+        final_date, final_time = final.split('T')[0], init.split('T')[1]
+        final_date = final_date.split('-')
+        final_time = final_time.split(':')
+        
+        out_time_interval['final'] = {
+            'y':int(final_date[0]),
+            'm':int(final_date[1]),
+            'd':int(final_date[2]),
+            'h':int(final_time[0]),
+            'min':int(final_time[1]),
+            's':int(final_time[2])
+                }
+    else:
+        print('Error!')
+    return out_time_interval
+            
+        
 
 
 
@@ -66,8 +119,12 @@ if __name__ == '__main__':
     city = 'Vancouver'
     data_path = '../../data/'
     
-    i_date = datetime.datetime(2017, 10, 1,  0,  0,  0)
-    f_date = datetime.datetime(2017, 10, 31, 23, 59, 59)
+    i_d, f_d = read_time_interval()['start'], read_time_interval()['final']
+    
+    i_date = datetime.datetime(i_d['y'], i_d['m'], i_d['d'],
+                               i_d['h'], i_d['min'], i_d['s'])
+    f_date = datetime.datetime(f_d['y'], f_d['m'], f_d['d'],
+                               f_d['h'], f_d['min'], f_d['s'])
     
   
     dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
@@ -108,7 +165,7 @@ if __name__ == '__main__':
     dataset = add_emergencies_column(neigh_with_metric)
     dataset.iloc[0:21].to_csv('../../data/Vancouver/Regression/dataset_train_emer.csv')
     dataset.iloc[21:22].to_csv('../../data/Vancouver/Regression/dataset_test_emer.csv')
-#    
+##    
     
 #    # =========================================================================
 #    # test on tiles
