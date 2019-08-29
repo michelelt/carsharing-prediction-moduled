@@ -13,7 +13,7 @@ import geopandas as gpd
 
 import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(CURRENT_DIR))
+sys.path.append('../../') 
 import  matplotlib.pyplot as plt
 import pytz
 from GlobalsFunctions import haversine, crs_
@@ -94,8 +94,8 @@ def read_time_interval():
             's':int(init_time[2])
             }
         
-        final = sys.argv[1]
-        final_date, final_time = final.split('T')[0], init.split('T')[1]
+        final = sys.argv[2]
+        final_date, final_time = final.split('T')[0], final.split('T')[1]
         final_date = final_date.split('-')
         final_time = final_time.split(':')
         
@@ -123,17 +123,17 @@ if __name__ == '__main__':
     
     i_date = datetime.datetime(i_d['y'], i_d['m'], i_d['d'],
                                i_d['h'], i_d['min'], i_d['s'])
+    
     f_date = datetime.datetime(f_d['y'], f_d['m'], f_d['d'],
                                f_d['h'], f_d['min'], f_d['s'])
     
   
     dp = DataPreprocesser(city, data_path, i_date=i_date, f_date=f_date)
     dp.upload_bookigns()
+    df=dp.df_global
     dp.standard_filtering()
     
     
-
-
     data_path_neigh = data_path+city+'/Opendata/'
     
     neigh = upload_data(data_path+city+'/Opendata/')

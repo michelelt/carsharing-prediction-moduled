@@ -43,15 +43,22 @@ class DataPreprocesser:
         
         file_id = 'raw'
         filename = self.fnc.create_name(file_id)
-        # print(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id))
-
+        print(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id))
+        
         if os.path.isfile(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id)):
             print('Uploaded and filtered from local')
             df = pd.read_csv(self.data_path+self.city+'/%s'%FileNameCreator(None, None, self.city).create_name(file_id))
+            self.df_global = df
+            
             i_ts = time.mktime(self.i_date.timetuple())
             f_ts = time.mktime(self.f_date.timetuple())
-            self.booking = df[(df.init_time > i_ts) & (df.init_time < f_ts)]
+            
+
+
+            self.booking = df[(df.init_time >= i_ts) & (df.init_time <= f_ts)]
             self.is_download = True
+            
+            print ('**8 %d' %i_ts)
 
         elif os.path.isfile(self.data_path+self.city+'/%s'%filename):
             

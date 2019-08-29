@@ -4,5 +4,6 @@ credential/credential.txt
 *.pyc 
 *.pdf
 *.png
-__pycache__/s
+__pycache__/
 data/*
+bibliography/*

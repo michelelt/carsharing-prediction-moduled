@@ -246,9 +246,9 @@ best_sol = get_best_config(errors_df)
 
 
 SP=False
-#want_median=True
-#ranks = plot_top_n_features(84, res_rfr, ['Mean'], save_plot=SP)
-##ranks_mean=ranks['mean'].reset_index()
+want_median=True
+ranks = plot_top_n_features(20, res_rfr, ['Mean'], save_plot=SP)
+#ranks_mean=ranks['mean'].reset_index()
 param1='err_mean_perc'
 param2='rmse'
 plot_errors_per_regression(errors_df, True, 'svr', want_median, 
