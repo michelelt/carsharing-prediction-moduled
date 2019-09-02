@@ -190,15 +190,22 @@ def get_best_config(errors_df):
     errors_df['booking_type'] = errors_df.apply(booking_type, axis=1)
 
 
+    grouping_columns_svr = ['kernel', 'is_normed', 'booking_type']
+    grouping_columns_rfr = ['n_estim', 'is_normed', 'booking_type']
+    if 'nof' in errors_df.columns:
+        grouping_columns_svr.append('nof')
+        grouping_columns_rfr.append('nof')
+
+    
     best_svr = errors_df[(errors_df.reg_type=='svr')]
     best_svr_g = best_svr\
-                .groupby(['kernel', 'is_normed', 'booking_type'])\
+                .groupby(grouping_columns_svr)\
                 .mean()\
                 .sort_values('err_mean_perc')
             
     best_rfr = errors_df[(errors_df.reg_type=='rfr')]
-    print(best_rfr.columns)
-    best_rfr_g = best_rfr.groupby(['n_estim', 'is_normed', 'booking_type'])\
+    best_rfr_g = best_rfr\
+                .groupby(grouping_columns_rfr)\
                 .mean()\
                 .sort_values('err_mean_perc')
     
@@ -208,6 +215,7 @@ def get_best_config(errors_df):
     min_final_found = False
     sol = {}
     for reg_type in ['svr', 'rfr']:
+        print(reg_type)
         if reg_type == 'svr': df = best_svr_g
         else: df = best_rfr_g
         for index, row in df.iterrows():
@@ -218,7 +226,11 @@ def get_best_config(errors_df):
                         'normed': index[1],
                         'targets': index[2]
                         }
+                
+                if len(index) >3:
+                    best_min_final['nof'] = index[3]
                 min_final_found = True
+                
                 
             if index[2] == 'start' and not min_start_found:
                 best_min_start = {
@@ -226,6 +238,8 @@ def get_best_config(errors_df):
                         'normed': index[1],
                         'targets': index[2]
                         }
+                if len(index) >3:
+                    best_min_start['nof'] = index[3]
                 min_start_found = True
                 
             if min_start_found and min_final_found: 
@@ -233,7 +247,9 @@ def get_best_config(errors_df):
                 min_start_found = False
                 min_final_found = False
                 break
-        
+            
+    
+    print(sol)    
     return sol
 
 

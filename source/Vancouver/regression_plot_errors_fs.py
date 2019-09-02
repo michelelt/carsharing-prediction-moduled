@@ -25,7 +25,10 @@ from GlobalsFunctions import ssh_connection,\
         
 import json
 
-
+type_of_error={
+        'err_mean_perc':0,
+        'rmse':1
+        }
 
 '''
 learning curve for starts
@@ -62,7 +65,7 @@ def compute_average_mean_error(nof, normed, target, df):
 
 
 
-def configs_learning_curve(errors_df, reg_type, normed, variable, targets):
+def configs_learning_curve(errors_df, reg_type, normed, variable, targets, error_name):
     errors_df = errors_df[True\
                 &(errors_df.reg_type==reg_type)\
                 &(errors_df.is_normed==normed)\
@@ -85,7 +88,7 @@ def configs_learning_curve(errors_df, reg_type, normed, variable, targets):
     data = {}
     for target in compute_target_labels()[targets]:
         for nof in range(1,len(errors_df.nof.unique())):
-            ame.append(compute_average_mean_error(nof, normed, target, error_df)[1])
+            ame.append(compute_average_mean_error(nof, normed, target, error_df)[type_of_error[error_name]])
             
         data[target] = {
                 'x':  range(1,len(errors_df.nof.unique())),
@@ -101,29 +104,33 @@ def configs_learning_curve(errors_df, reg_type, normed, variable, targets):
 
 
 
-def plot_learning_curves_4(save_plot, errors_df, best_sols):
+def plot_learning_curves_4(save_plot, errors_df, best_sols, error_name):
     configs = []
     configs.append(configs_learning_curve(errors_df, 
                                               'rfr', 
                                               best_sol['rfr']['start']['normed'],
                                               best_sol['rfr']['start']['variable'], 
-                                              'starts')
+                                              'starts',
+                                              error_name)
         )
     configs.append(configs_learning_curve(errors_df, 'rfr', 
                                               best_sol['rfr']['final']['normed'], 
                                               best_sol['rfr']['final']['variable'], 
-                                              'finals')
+                                              'finals',
+                                              error_name)
         )
     configs.append(configs_learning_curve(errors_df, 'svr', 
                                               best_sol['svr']['start']['normed'], 
                                               best_sol['svr']['start']['variable'], 
-                                              'starts')
+                                              'starts',
+                                              error_name)
         )
     
     configs.append(configs_learning_curve(errors_df, 'svr', 
                                               best_sol['svr']['final']['normed'], 
                                               best_sol['svr']['final']['variable'],
-                                              'finals')
+                                              'finals',
+                                              error_name)
         )
 
     fig, ax = plt.subplots(2,2, figsize=(20,20))
@@ -142,7 +149,7 @@ def plot_learning_curves_4(save_plot, errors_df, best_sols):
                 
                 ax[i,j].plot(x, y, label=target)
                 ax[i,j].set_xlabel('Numbner of selected features')
-                ax[i,j].set_ylabel('Mean average error')
+                ax[i,j].set_ylabel(error_name)
                 ax[i,j].grid()
                 ax[i,j].set_title('Reg. type: %s; Normalized: %s; Varbiale: %s'%(
                         reg_type.upper(), str(normed), variable)) 
@@ -209,7 +216,7 @@ best_sol = get_best_config(errors_df)
 zzz = errors_df[errors_df.err != '{}']
 line_nan=zzz[zzz.err != '{}']
 
-aaa = plot_learning_curves_4(False, zzz, best_sol)   
+aaa = plot_learning_curves_4(True, zzz, best_sol, 'err_mean_perc')   
 
 
 

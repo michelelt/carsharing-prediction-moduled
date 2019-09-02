@@ -57,7 +57,10 @@ def plot_top_n_features(n, res_rfr, labels, save_plot=False):
             ticklabels[t] =  element.replace('$', '\$')
             
         axs[i].set_yticks(ind)
-        axs[i].set_yticklabels(ticklabels,  rotation=0, ha='right', fontsize=5)
+        if n >30:
+            axs[i].set_yticklabels(ticklabels,  rotation=0, ha='right', fontsize=5)
+        else:
+            axs[i].set_yticklabels(ticklabels,  rotation=0, ha='right')
         axs[i].invert_yaxis()
         axs[i].legend()
         
@@ -245,30 +248,30 @@ best_sol = get_best_config(errors_df)
 
 
 
-SP=False
+SP=True
 want_median=True
 ranks = plot_top_n_features(20, res_rfr, ['Mean'], save_plot=SP)
-#ranks_mean=ranks['mean'].reset_index()
-param1='err_mean_perc'
-param2='rmse'
-plot_errors_per_regression(errors_df, True, 'svr', want_median, 
-                           param1, param2, save_plot=SP)
-plot_errors_per_regression(errors_df, False, 'svr', want_median,
-                            param1, param2, save_plot=SP)
+##ranks_mean=ranks['mean'].reset_index()
+#param1='err_mean_perc'
+#param2='rmse'
+#plot_errors_per_regression(errors_df, True, 'svr', want_median, 
+#                           param1, param2, save_plot=SP)
+#plot_errors_per_regression(errors_df, False, 'svr', want_median,
+#                            param1, param2, save_plot=SP)
+#
+#
+#plot_errors_per_regression(errors_df, True, 'rfr', want_median, 
+#                            param1, param2, save_plot=SP)
+#plot_errors_per_regression(errors_df, False, 'rfr', want_median, 
+#                            param1, param2, save_plot=SP)
 
-
-plot_errors_per_regression(errors_df, True, 'rfr', want_median, 
-                            param1, param2, save_plot=SP)
-plot_errors_per_regression(errors_df, False, 'rfr', want_median, 
-                            param1, param2, save_plot=SP)
-
-
-
-
-plot_avg_err_per_nestim(errors_df, True, 'svr', param1, param2)
-plot_avg_err_per_nestim(errors_df, False, 'svr', param1, param2)
-plot_avg_err_per_nestim(errors_df, True, 'rfr', param1, param2)
-plot_avg_err_per_nestim(errors_df, False, 'rfr', param1, param2)
+#
+#
+#
+#plot_avg_err_per_nestim(errors_df, True, 'svr', param1, param2)
+#plot_avg_err_per_nestim(errors_df, False, 'svr', param1, param2)
+#plot_avg_err_per_nestim(errors_df, True, 'rfr', param1, param2)
+#plot_avg_err_per_nestim(errors_df, False, 'rfr', param1, param2)
 
 
 

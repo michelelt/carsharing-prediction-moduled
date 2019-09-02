@@ -18,21 +18,12 @@ sys.path.append('../../')
 from classes.Regression import Regression
  
     
-city = 'Vancouver'
-data_path  = './../../data/'
 
-loo = LeaveOneOut()
-res = []
-#
-start = time.time()
-reg = Regression(data_path, city, norm=True)
-reg.add_distance_as_feature(base_in_downtown=True)
-reg.preprocess_data()
 
 #feature_ranks = pd.read_csv(data_path+city+'/Regression/feature_ranks.csv')
 #most_ranked = feature_ranks.mean().sort_values(ascending=False)
 #df = reg.complete_dataset
-def run_rfr():
+def run_rfr(reg):
     ## =============================================================================
     ## RFR regression   
     ## =============================================================================
@@ -64,7 +55,7 @@ def run_rfr():
 
 
 
-def run_svr():
+def run_svr(reg):
     # =============================================================================
     # SVR regression
     # =============================================================================
@@ -94,6 +85,21 @@ def run_svr():
     df = pd.DataFrame(res)
     df.to_csv(data_path+city+'/Regression/output_svr/svr_regression_dist.csv')
 
+
+
 if __name__=='__main__':
-    run_rfr()
-    run_svr()
+    
+    city = 'Vancouver'
+    data_path  = './../../data/'
+    
+    loo = LeaveOneOut()
+    res = []
+    #
+    start = time.time()
+    reg = Regression(data_path, city, norm=True)
+    reg.add_distance_as_feature(base_in_downtown=True)
+    reg.preprocess_data()
+    df = reg.targets_df
+    means = df.median().to_frame().sort_index().T
+#    run_rfr(reg)
+#    run_svr(reg)
