@@ -19,21 +19,16 @@ sys.path.append('../../')
 from GlobalsFunctions import create_errors_df,\
     get_best_config,\
     ssh_connection,\
-    download_file
+    download_file,\
+    compute_feature_rank
 
 import json
 
 
 
 
-def plot_top_n_features(n, res_rfr, labels, save_plot=False):
-    
-    rfr_df =  pd.read_csv(res_rfr)
-    ranks_list = []
-    for rank_str in rfr_df['rank']:
-        ranks_list.append(json.loads(rank_str)['score'])
-    ranks_df = pd.DataFrame(ranks_list)
-    
+def plot_top_n_features(n, ranks_df, labels, save_plot=False):
+        
     if n is None:  n=len(ranks_df)
     mean_ranks   = ranks_df.mean().sort_values(ascending=False).iloc[0:n]
     median_ranks = ranks_df.median().sort_values(ascending=False).iloc[0:n]
@@ -250,8 +245,9 @@ best_sol = get_best_config(errors_df)
 
 SP=True
 want_median=True
-ranks = plot_top_n_features(20, res_rfr, ['Mean'], save_plot=SP)
-##ranks_mean=ranks['mean'].reset_index()
+ranks_df = compute_feature_rank(res_rfr,True,data_path+city+'/Regression/feature_ranks.csv')
+ranks = plot_top_n_features(None, ranks_df, ['Mean'], save_plot=SP)
+
 #param1='err_mean_perc'
 #param2='rmse'
 #plot_errors_per_regression(errors_df, True, 'svr', want_median, 

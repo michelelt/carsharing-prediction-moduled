@@ -15,6 +15,7 @@ from paramiko import SSHClient
 from scp import SCPClient
 
 from shapely.geometry import Point, Polygon, MultiPolygon
+import json
 
 
 
@@ -352,6 +353,22 @@ def create_errors_df(res_rfr, res_svr):
             
     errors_df = pd.DataFrame(errors_list)
     return errors_df
+
+
+def compute_feature_rank(res_rfr, save, path=''):
+    rfr_df =  pd.read_csv(res_rfr)
+    ranks_list = []
+    for rank_str in rfr_df['rank']:
+        ranks_list.append(json.loads(rank_str)['score'])
+    ranks_df = pd.DataFrame(ranks_list)
+    
+    if save: 
+        ranks_df.to_csv(path, index=False)
+    return ranks_df
+
+
+
+
 
 
 

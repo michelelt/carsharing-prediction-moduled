@@ -18,7 +18,9 @@ sys.path.append('../../')
 from classes.Regression import Regression
 from GlobalsFunctions import get_best_config,\
     create_errors_df,\
-    compute_target_labels
+    compute_target_labels,\
+    compute_feature_rank
+    
     
 import sys
  
@@ -111,15 +113,22 @@ if __name__=='__main__':
     errors_df = create_errors_df(res_rfr, res_svr)
     best_sol = get_best_config(errors_df)
     
+    start = time.time()
+    
     reg = Regression(data_path, city, norm=True)
     reg.add_distance_as_feature(base_in_downtown=True)
     reg.preprocess_data()
-    if sys.argv[1].lower() == 'rfr':
-        run_rfr(reg, best_sol, most_ranked)
-    elif sys.argv[1].lower() == 'svr':
-        run_svr(reg, best_sol, most_ranked)
-    else:
-        print('error')
+    
+    
+    run_svr(reg, best_sol, most_ranked)
+    
+    
+#    if sys.argv[1].lower() == 'rfr':
+#        run_rfr(reg, best_sol, most_ranked)
+#    elif sys.argv[1].lower() == 'svr':
+#        run_svr(reg, best_sol, most_ranked)
+#    else:
+#        print('error')
        
     
 

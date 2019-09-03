@@ -99,7 +99,6 @@ if __name__=='__main__':
     reg = Regression(data_path, city, norm=True)
     reg.add_distance_as_feature(base_in_downtown=True)
     reg.preprocess_data()
-    df = reg.targets_df
-    means = df.median().to_frame().sort_index().T
-#    run_rfr(reg)
-#    run_svr(reg)
+    
+    run_rfr(reg)
+    run_svr(reg)
