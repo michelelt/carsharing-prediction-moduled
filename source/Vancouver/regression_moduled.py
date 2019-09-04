@@ -94,11 +94,25 @@ if __name__=='__main__':
     
     loo = LeaveOneOut()
     res = []
-    #
+    
     start = time.time()
     reg = Regression(data_path, city, norm=True)
-    reg.add_distance_as_feature(base_in_downtown=True)
     reg.preprocess_data()
+    
+    reg.add_distance_as_feature(base_in_downtown=True)
+    
+    reg.add_area_as_feature('km2')
+    reg.normalize_features_per_area()
+    reg.normalize_targets_per_area()
+    
+    
     
     run_rfr(reg)
     run_svr(reg)
+    
+    print('Total Time %s'%(str(datetime.timedelta(seconds=time.time() - start))))
+    
+    
+    
+    
+    

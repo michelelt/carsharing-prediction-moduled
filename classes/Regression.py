@@ -232,11 +232,51 @@ class Regression:
             return int(km*1000)
         
         
-        neighs['distance_from_referece'] =  neighs.apply(lambda x: haversine(base.x, base.y,
+        neighs['distance_from_reference'] =  neighs.apply(lambda x: haversine(base.x, base.y,
                                                      x.centroid.x, x.centroid.y), axis=1)
-        self.complete_dataset['distance_from_referece'] = neighs['distance_from_referece']
+        self.complete_dataset['distance_from_reference'] = neighs['distance_from_reference']
+
+
+
+    def add_area_as_feature(self, um):
+        neighs = gpd.read_file(self.data_path\
+                       +self.city\
+                       +'/Opendata/Vancouver_macroArea/Vancouver_macroArea.shp')\
+        [['MAPID', 'geometry']]
+
+        self.neighs = neighs 
+
+        if um == 'km2': mypow = 1
+        elif um == 'm2': mypow = 2
+        else: mypow =1
+        
+        '''
+        area  returns the angle of detected spehar, so multlplung by the radius I obtain the approxmate value
+        pow is to consdire square meters o km
+        '''
+        self.complete_dataset['area'] = neighs['geometry'].area * (6370**mypow) 
+        print('U.M. for area: %s, %s'%(um, str(mypow)))
 
         
+        
+    def normalize_features_per_area(self):
+        if 'area' not in self.complete_dataset.columns:
+            self.add_area_as_feature('km2')
+
+        temp_area = self.complete_dataset['area']
+        temp_dfr = self.complete_dataset.distance_from_reference
+        self.complete_dataset = self.complete_dataset[self.complete_dataset.columns].div(self.complete_dataset['area'], axis=0)
+        self.complete_dataset['area'] = temp_area
+        self.complete_dataset['distance_from_reference'] = temp_dfr
+        
+
+
+    def normalize_targets_per_area(self):
+        if 'area' not in self.complete_dataset.columns:
+            self.add_area_as_feature('km2')
+
+        temp_area = self.complete_dataset['area']
+        self.targets_df = self.targets_df[self.targets_df.columns].div(self.complete_dataset['area'], axis=0)   
 
     
         
