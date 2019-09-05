@@ -94,35 +94,67 @@ class Regression:
             
 
     def config_svr_regressor(self, kernel, *args, **kwargs ):
-        if kernel == 'poly':
-            C       = kwargs.get('C', 100)
-            gamma   = kwargs.get('gamma', 'auto')
-            epsilon = kwargs.get('epsilon', .1)
-            degree  = kwargs.get('degree', 2)
-            coef0   = kwargs.get('coeff01',1)
-            svr = SVR(kernel=kernel, 
-                      C=C, 
-                      gamma=gamma, 
-                      degree=degree, 
-                      epsilon=epsilon, 
-                      coef0=coef0)
-            
-        elif kernel == 'linear':
-            C       = kwargs.get('C', 100)
-            gamma   = kwargs.get('gamma', 'auto')
-            epsilon = kwargs.get('epsilon', .1)
-            svr= SVR(kernel=kernel, C=C, gamma=gamma)
-            
-        elif kernel == 'rbf':
-            C       = kwargs.get('C', 100)
-            gamma   = kwargs.get('gamma', 0.1)
-            epsilon = kwargs.get('epsilon', .1)
-            svr = SVR(kernel=kernel, C=C, gamma=gamma, epsilon=epsilon)
-            
-            
+        if 'nu' not in kwargs.keys():
+            if kernel == 'poly':
+                C       = kwargs.get('C', 100)
+                gamma   = kwargs.get('gamma', 'auto')
+                epsilon = kwargs.get('epsilon', .1)
+                degree  = kwargs.get('degree', 2)
+                coef0   = kwargs.get('coeff01',1)
+                svr = SVR(kernel=kernel, 
+                          C=C, 
+                          gamma=gamma, 
+                          degree=degree, 
+                          epsilon=epsilon, 
+                          coef0=coef0)
+                
+            elif kernel == 'linear':
+                C       = kwargs.get('C', 100)
+                gamma   = kwargs.get('gamma', 'auto')
+                epsilon = kwargs.get('epsilon', .1)
+                svr= SVR(kernel=kernel, C=C, gamma=gamma)
+                
+            elif kernel == 'rbf':
+                C       = kwargs.get('C', 100)
+                gamma   = kwargs.get('gamma', 0.1)
+                epsilon = kwargs.get('epsilon', .1)
+                svr = SVR(kernel=kernel, C=C, gamma=gamma, epsilon=epsilon)
+                
+                
+            else:
+                svr = None
         else:
-            svr = None
-        
+            nu = kwargs['nu']
+            if kernel == 'poly':
+                C       = kwargs.get('C', 100)
+                gamma   = kwargs.get('gamma', 'auto')
+                epsilon = kwargs.get('epsilon', .1)
+                degree  = kwargs.get('degree', 2)
+                coef0   = kwargs.get('coeff01',1)
+                svr = NuSVR(kernel=kernel, 
+                          C=C, 
+                          gamma=gamma, 
+                          degree=degree, 
+                          epsilon=epsilon, 
+                          coef0=coef0,
+                          nu  = nu)
+                
+            elif kernel == 'linear':
+                C       = kwargs.get('C', 100)
+                gamma   = kwargs.get('gamma', 'auto')
+                epsilon = kwargs.get('epsilon', .1)
+                svr= NuSVR(kernel=kernel, C=C, gamma=gamma, nu=nu)
+                
+            elif kernel == 'rbf':
+                C       = kwargs.get('C', 100)
+                gamma   = kwargs.get('gamma', 0.1)
+                epsilon = kwargs.get('epsilon', .1)
+                svr = NuSVR(kernel=kernel, C=C, gamma=gamma, epsilon=epsilon, nu=nu)
+                
+                
+            else:
+                svr = None
+            
         return svr
         
       
@@ -145,6 +177,17 @@ class Regression:
             kernel = kwargs.get('kernel', 'linear')
             s['algorithm'] = algorithm
             s['kernel'] = kernel
+            method = self.config_svr_regressor(kernel, kwargs)
+            if method == None:
+                print('SVR %s Kernel not implemented'%kernel)
+                return  False
+            
+        elif algorithm == 'svr_nu':
+            kernel = kwargs.get('kernel', 'linear')
+            nu =  float(kwargs.get('nu', '0.5'))
+            s['algorithm'] = algorithm
+            s['kernel'] = kernel
+            s['nu'] = nu
             method = self.config_svr_regressor(kernel, kwargs)
             if method == None:
                 print('SVR %s Kernel not implemented'%kernel)

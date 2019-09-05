@@ -66,7 +66,7 @@ def compute_errors_per_FID_per_target(errors_df, best_sol):
 
 
 
-def errors_per_FID_per_target(epz_pt, save_plot):
+def errors_per_FID_per_target(epz_pt, save_plot, path=''):
     fig, ax = plt.subplots(2,2, figsize=(20,20))
     for i in range(0,4):
         r,c  = compute_index_plot(4, i)
@@ -97,13 +97,13 @@ def errors_per_FID_per_target(epz_pt, save_plot):
         ax[r,c].set_xlabel('Neighbour ID')
         ax[r,c].set_ylabel('Bookings Error [%]')
     if save_plot:
-        plt.savefig(data_path+city+'/Regression/error_distirbution.pdf',\
+        plt.savefig(path+'/Regression/error_distirbution.pdf',\
                         bbox_incehs='tight', pad_inces=0)
         
         
 
-def plot_mean_error_on_map(epz_pt, save_plot):
-    filename =  'Vancouver_filtered_binned_2017-10-01T00-00-00_2017-10-31T23-59-59.csv'
+def plot_mean_error_on_map(epz_pt, save_plot, path=''):
+    filename =  'Vancouver_filtered_binned_merged_2017-10-01T00-00-00_2017-10-31T23-59-59.csv'
     df = pd.read_csv(data_path+city+'/'+filename, nrows=None)
     limits = pd.read_csv(data_path+city+'/Vancouver_limits.csv')
     df = df[ (df.start_lat >= limits.min_lat.values[0])\
@@ -144,7 +144,14 @@ def plot_mean_error_on_map(epz_pt, save_plot):
                      fontsize=8,
                      color='white'
                      )
-    return neighs
+        
+    if save_plot:
+        print('Plot saved')
+        plt.savefig(path+'/Regression/error_distirbution_map.pdf',\
+                        bbox_incehs='tight', pad_inces=0)
+        
+        
+    return neighs, df
     
         
         
@@ -155,12 +162,11 @@ def plot_mean_error_on_map(epz_pt, save_plot):
         
 
 if __name__=='__main__':
-    
+    #    
     city = 'Vancouver'
     data_path  = './../../data/'
-    
 
-                           
+
     res_rfr = data_path+city+'/Regression/output_rfr/rfr_regression_dist_fs.csv'
     res_svr = data_path+city+'/Regression/output_svr/svr_regression_dist_fs.csv'
     
@@ -175,28 +181,18 @@ if __name__=='__main__':
         if 't_age' in c:
             pop_col.append(c)
     pop_df = stats[pop_col].T.sum().to_frame().rename(columns={0:'population'}).loc[[18,15,14,0,3]]
-#    errors_df = create_errors_df(res_rfr, res_svr)
-#    errors_df = errors_df[errors_df.err != '{}']
+    errors_df = create_errors_df(res_rfr, res_svr)
+    errors_df = errors_df[errors_df.err != '{}']
     
-#    zzz = errors_df
-#    best_sol = get_best_config(zzz)
-    
-    
-#    epz_pt = compute_errors_per_FID_per_target(errors_df, best_sol)
-#    errors_per_FID_per_target(epz_pt, save_plot=True)   
+    zzz = errors_df
+    best_sol = get_best_config(zzz)
     
     
+    epz_pt = compute_errors_per_FID_per_target(errors_df, best_sol)
+    errors_per_FID_per_target(epz_pt, save_plot=True, path = data_path+city)   
+    neighs,df = plot_mean_error_on_map(epz_pt, save_plot=True, path=data_path+city)
     
 
-    
-#        plt.annotate(s=row['NAME'], xy=row['coords'],
-#                 horizontalalignment='center', 
-#                 fontsize=5
-#                 )
-#        if idx % 5 == 0 and idx!=0: div = '\n'
-#        else : div = '; '
-#        title  +=str(idx) +'-'+ row['MAPID']+'-'+row['NAME'] + div
-#    ax.set_title(title)
 
 
 

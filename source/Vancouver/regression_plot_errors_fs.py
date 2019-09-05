@@ -164,6 +164,7 @@ def plot_learning_curves_4(save_plot, errors_df, best_sols, error_name):
     ax[0,1].set_xlabel('') 
     
     if save_plot:
+        print('Plot saved')
         plt.savefig(data_path+city+'/Regression/LC_.pdf',\
                         bbox_incehs='tight', pad_inces=0)
         

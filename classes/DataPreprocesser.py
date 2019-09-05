@@ -175,7 +175,7 @@ class DataPreprocesser:
         return
         
 
-    def standard_filtering(self):
+    def standard_filtering(self, remove_neigh_outside_vancouver=False):
         
         fileid = 'filtered_binned'
         file_name = self.fnc.create_name(fileid)
@@ -209,7 +209,11 @@ class DataPreprocesser:
         else:
             print('Dataset already preprocessed')
             self.booking = pd.read_csv(self.data_path+self.city+'/%s'%file_name)
+            
+            
         return
+    
+
 
     def filter_businessdays(self, filter_friday = False):
         df = self.booking

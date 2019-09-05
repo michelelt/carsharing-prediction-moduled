@@ -246,24 +246,24 @@ best_sol = get_best_config(errors_df)
 SP=True
 want_median=True
 ranks_df = compute_feature_rank(res_rfr,True,data_path+city+'/Regression/feature_ranks.csv')
-ranks = plot_top_n_features(None, ranks_df, ['Mean'], save_plot=SP)
+ranks = plot_top_n_features(20, ranks_df, ['Mean'], save_plot=SP)
 
-#param1='err_mean_perc'
-#param2='rmse'
-#plot_errors_per_regression(errors_df, True, 'svr', want_median, 
-#                           param1, param2, save_plot=SP)
-#plot_errors_per_regression(errors_df, False, 'svr', want_median,
-#                            param1, param2, save_plot=SP)
-#
-#
-#plot_errors_per_regression(errors_df, True, 'rfr', want_median, 
-#                            param1, param2, save_plot=SP)
-#plot_errors_per_regression(errors_df, False, 'rfr', want_median, 
-#                            param1, param2, save_plot=SP)
+param1='err_mean_perc'
+param2='rmse'
+plot_errors_per_regression(errors_df, True, 'svr', want_median, 
+                           param1, param2, save_plot=SP)
+plot_errors_per_regression(errors_df, False, 'svr', want_median,
+                            param1, param2, save_plot=SP)
 
-#
-#
-#
+
+plot_errors_per_regression(errors_df, True, 'rfr', want_median, 
+                            param1, param2, save_plot=SP)
+plot_errors_per_regression(errors_df, False, 'rfr', want_median, 
+                            param1, param2, save_plot=SP)
+
+
+
+
 #plot_avg_err_per_nestim(errors_df, True, 'svr', param1, param2)
 #plot_avg_err_per_nestim(errors_df, False, 'svr', param1, param2)
 #plot_avg_err_per_nestim(errors_df, True, 'rfr', param1, param2)

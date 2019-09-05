@@ -78,7 +78,7 @@ class MetricCreator:
             self.tiles_are_squares = False
         # print('Tiles are squares',  self.tiles_are_squares)
         
-    def merge_tiles_with_bookings(self):
+    def merge_tiles_with_bookings(self, vancouver_olny=False):
         
         if ('index_start' in list(self.df.columns)) and ('index_end' in list(self.df.columns))\
         or\
@@ -103,6 +103,13 @@ class MetricCreator:
             self.df = merged
             fileid = 'filtered_binned_merged'
             file_name = self.fnc.create_name(fileid)
+            
+        if vancouver_olny == True:
+            
+            print('len with -1: %d', len(self.df))
+            self.df = self.df[self.df.FID_right > -1]
+            self.df = self.df[self.df.FID_left > -1]
+            print('len without -1: %d', len(self.df))
             self.df.to_csv(self.data_path + '%s/%s'%(self.city, file_name))
         return 
     

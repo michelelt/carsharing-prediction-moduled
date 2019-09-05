@@ -40,7 +40,7 @@ def run_rfr(reg, best_sol, most_ranked):
         
         for target in targets:
             for train_index, valid_index in loo.split(reg.complete_dataset):
-                for nof in range(1,range(most_ranked)+1)):
+                for nof in range(1,len(most_ranked)+1):
 	            
     	            print('RFR - FS', target, var, valid_index, nof)
     
@@ -74,15 +74,15 @@ def run_svr(reg, best_sol, most_ranked):
         
         for target in targets:
             for train_index, valid_index in loo.split(reg.complete_dataset):
-                for nof in range(1,range(most_ranked)+1):
+                for nof in range(1,len(most_ranked)+1):
 	            
-                    print('SVR - FS', target, var, valid_index, nof)
+                    print('SVR - FS', normed, target, var, valid_index, nof)
                     
-                    reg.set_norm(normed)
+                    reg.set_norm(True)
                     reg.split_datasets(target, train_index, valid_index,
                        features_to_keep=most_ranked.iloc[0:nof].index)
                     
-                    reg.perform_regression('svr', kernel=var, random_state=0)
+                    reg.perform_regression('svr', kernel=var, random_state=0, nu=0.1)
                     res.append(reg.results)
     	           
                     print()
@@ -119,17 +119,18 @@ if __name__=='__main__':
     reg.add_distance_as_feature(base_in_downtown=True)
     reg.add_area_as_feature('km2')
     reg.normalize_features_per_area()
-#    
-    run_svr(reg, best_sol, most_ranked)
+    reg.normalize_targets_per_area()
+
+    
 
 
     
-#    if sys.argv[1].lower() == 'rfr':
-#        run_rfr(reg, best_sol, most_ranked)
-#    elif sys.argv[1].lower() == 'svr':
-#        run_svr(reg, best_sol, most_ranked)
-#    else:
-#        print('error')
+    if sys.argv[1].lower() == 'rfr':
+        run_rfr(reg, best_sol, most_ranked)
+    elif sys.argv[1].lower() == 'svr':
+        run_svr(reg, best_sol, most_ranked)
+    else:
+        print('error')
        
     
 

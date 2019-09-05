@@ -113,6 +113,17 @@ if __name__=='__main__':
     print('Total Time %s'%(str(datetime.timedelta(seconds=time.time() - start))))
     
     
+# =============================================================================
+# svr impl details
+# https://scikit-learn.org/stable/modules/svm.html#svm-implementation-details
+# =============================================================================
+
+
+# =============================================================================
+# rfr impl details
+# https://scikit-learn.org/stable/modules/ensemble.html#forest
+# =============================================================================
+
     
     
     

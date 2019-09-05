@@ -19,6 +19,9 @@ import pytz
 from GlobalsFunctions import haversine, crs_
 import geoplot
 
+import matplotlib.pyplot as plt
+
+
 
 # =============================================================================
 # data pipeline  from scratch
@@ -135,12 +138,12 @@ if __name__ == '__main__':
     
     
     data_path_neigh = data_path+city+'/Opendata/'
-    
     neigh = upload_data(data_path+city+'/Opendata/')
     building_info = gpd.read_file(data_path+city+'/Opendata/'+\
                                   'zoning_districts_shp/zoning_districts.shp')\
             .to_crs(crs_)
-            
+    
+    
     neigh_with_features = merge_neigh_with_census(neigh, 
                                                   data_path+city+'/Opendata/')
     neigh_with_features = neigh_with_features\
@@ -149,12 +152,15 @@ if __name__ == '__main__':
                         .rename(columns={'index':'FID'})
     
     neigh = merge_tiles_and_building_info(neigh_with_features, building_info)
-                        
-
+#                        
+    
+    '''
+    here I merge the census with bookings
+    '''
     mc = MetricCreator(dp.booking, neigh, i_date, f_date, data_path)
     tiles = mc.tiles
-    mc.merge_tiles_with_bookings()
-    
+    mc.merge_tiles_with_bookings(vancouver_olny=True)    
+        
     neigh_with_metric = mc.compute_metrics_per_tile(save=True)
     
     add_emergencies_column = getattr(
@@ -165,8 +171,13 @@ if __name__ == '__main__':
     dataset = add_emergencies_column(neigh_with_metric)
     dataset.iloc[0:21].to_csv('../../data/Vancouver/Regression/dataset_train_emer.csv')
     dataset.iloc[21:22].to_csv('../../data/Vancouver/Regression/dataset_test_emer.csv')
-##    
     
+    
+    
+    
+     
+    
+###    
 #    # =========================================================================
 #    # test on tiles
 #    # =========================================================================
